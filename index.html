@@ -43,6 +43,9 @@
   .check{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--ink);margin:4px 0}
   .status{margin-top:10px;font-size:13.5px;min-height:20px}
   .status.err{color:var(--warn)} .status.ok{color:var(--ok)}
+  .credit{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);text-align:center;line-height:1.6}
+  .credit-label{font-size:12px;letter-spacing:.02em}
+  .credit-name{font-size:15px;font-weight:700;color:var(--ink)}
   .pages{display:flex;flex-direction:column;align-items:center;gap:22px}
   .page{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 6px 22px rgba(0,0,0,.08)}
   .page canvas{display:block}
@@ -108,6 +111,12 @@
   <button class="btn ghost" id="printBtn" style="display:none" disabled>สั่งพิมพ์</button>
   <div class="status" id="status"></div>
   <div class="small" id="printNote" style="margin-top:6px">สั่งพิมพ์: เปิดไฟล์ PDF ที่บันทึกไว้ แล้วกด Ctrl+P (Mac: ⌘+P) — หน้าโจทย์เป็นแนวนอน หน้าปกและเฉลยเป็นแนวตั้ง</div>
+  <div class="credit">
+    <div class="credit-label">พัฒนาโดย</div>
+    <div class="credit-name">ครูอภิวัฒน์ ปาวงค์</div>
+    <div>โรงเรียนบ้านหนองเอี่ยนดง “ราษฎร์สงเคราะห์”</div>
+    <div>จังหวัดมุกดาหาร</div>
+  </div>
 </aside>
 <main><div class="pages" id="pages"><div class="empty">กด “สร้างข้อสอบ” เพื่อดูตัวอย่าง</div></div></main>
 </div>

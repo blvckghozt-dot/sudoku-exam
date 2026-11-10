@@ -102,11 +102,12 @@
     <button class="btn ghost" id="newSeed">สุ่มชุดใหม่ทั้งหมด</button>
     <div class="small" style="margin-top:6px">ใช้รหัสชุดเดิม = ได้ข้อสอบชุดเดิมทุกครั้ง</div>
     <label class="check"><input type="checkbox" id="optCover" checked> หน้าปก (ชื่อ ชั้น โรงเรียน ตารางคะแนน)</label>
-    <label class="check"><input type="checkbox" id="optKey" checked> แนบเฉลยท้ายชุด</label>
+    <label class="check"><input type="checkbox" id="optKey" checked> แสดงเฉลยในหน้าตัวอย่าง</label>
   </fieldset>
 
   <button class="btn" id="genBtn">สร้างข้อสอบ</button>
-  <button class="btn ghost" id="pdfBtn" disabled>บันทึก PDF (ข้อสอบ)</button>
+  <button class="btn ghost" id="pdfBtn" disabled>บันทึก PDF (ข้อสอบ + เฉลย)</button>
+  <button class="btn ghost" id="examBtn" disabled>บันทึก PDF (เฉพาะข้อสอบ)</button>
   <button class="btn ghost" id="keyBtn" disabled>บันทึก PDF (เฉพาะเฉลย)</button>
   <button class="btn ghost" id="printBtn" style="display:none" disabled>สั่งพิมพ์</button>
   <div class="status" id="status"></div>
@@ -487,7 +488,7 @@ function buildPages(st,puzzles,which){
     if(st.cover)pages.push(coverPage(st));
     for(let i=0;i<puzzles.length;i+=2)pages.push(puzzlePage(st,puzzles.slice(i,i+2),i));
   }
-  if(which==='key'||st.key)pages.push(...answerPages(st,puzzles));
+  if(which==='key'||which==='all'||(which==='preview'&&st.key))pages.push(...answerPages(st,puzzles));
   return pages;
 }
 
@@ -586,7 +587,7 @@ async function ensureFonts(){
 }
 
 async function generate(){
-  $('genBtn').disabled=true;$('pdfBtn').disabled=true;$('keyBtn').disabled=true;$('printBtn').disabled=true;
+  $('genBtn').disabled=true;$('pdfBtn').disabled=true;$('examBtn').disabled=true;$('keyBtn').disabled=true;$('printBtn').disabled=true;
   try{
     await ensureFonts();
     const out=[];
@@ -599,14 +600,14 @@ async function generate(){
     puzzles=out;built=JSON.stringify(state);
     preview();
     status(`สร้างเสร็จ ${out.length} ข้อ (รหัสชุด ${state.seed}) — ตรวจแล้วทุกข้อมีคำตอบเดียว`,'ok');
-    $('pdfBtn').disabled=false;$('keyBtn').disabled=false;$('printBtn').disabled=false;
+    $('pdfBtn').disabled=false;$('examBtn').disabled=false;$('keyBtn').disabled=false;$('printBtn').disabled=false;
   }catch(e){console.error(e);status('เกิดข้อผิดพลาด: '+e.message,'err')}
   $('genBtn').disabled=false;
 }
 
 function preview(){
   const box=$('pages');box.innerHTML='';
-  const pages=buildPages(state,puzzles,'all');
+  const pages=buildPages(state,puzzles,'preview');
   const dpr=window.devicePixelRatio||1,base=1.25;
   let css='';const [pw,ph]=PAPER[state.paper];
   css+=`@page portrait{size:${pw}pt ${ph}pt;margin:0}@page landscape{size:${ph}pt ${pw}pt;margin:0}`;
@@ -650,11 +651,11 @@ async function buildPDFBlob(which){
 async function exportPDF(which){
   if(!puzzles)return;
   if(built!==JSON.stringify(state)){status('มีการแก้ไขการตั้งค่า กด “สร้างข้อสอบ” ใหม่ก่อนบันทึก','err');return}
-  const btn=which==='key'?$('keyBtn'):$('pdfBtn');btn.disabled=true;
+  const btn=which==='key'?$('keyBtn'):which==='exam'?$('examBtn'):$('pdfBtn');btn.disabled=true;
   try{
     const blob=await buildPDFBlob(which);
     const safe=s=>s.replace(/[\\/:*?"<>|]/g,'').trim();
-    const name=(which==='key'?safe(state.t4||'เฉลยซูโดกุ'):safe(state.t1||'ซูโดกุ'))+` (${state.seed}).pdf`;
+    const name=(which==='key'?safe(state.t4||'เฉลยซูโดกุ'):safe(state.t1||'ซูโดกุ')+(which==='exam'?' ข้อสอบ':' ข้อสอบและเฉลย'))+` (${state.seed}).pdf`;
     status('กำลังบันทึกไฟล์ …');
     const r=await saveBlob(name,blob);
     status(r==='declined'?'ยกเลิกการบันทึก':r==='busy'?'มีหน้าต่างบันทึกเปิดอยู่ ลองอีกครั้ง':`บันทึก ${name} แล้ว (${(blob.size/1024/1024).toFixed(1)} MB)`,r==='declined'||r==='busy'?'err':'ok');
@@ -677,6 +678,7 @@ $('newSeed').onclick=()=>{state.seed=randomSeed();state.items.forEach(i=>i.salt=
 $('addItem').onclick=()=>{if(state.items.length>=16)return;state.items.push({type:'classic',size:9,points:10,salt:0});save();renderForm()};
 $('genBtn').onclick=generate;
 $('pdfBtn').onclick=()=>exportPDF('all');
+$('examBtn').onclick=()=>exportPDF('exam');
 $('keyBtn').onclick=()=>exportPDF('key');
 $('printBtn').onclick=()=>window.print();
 if(window.top===window.self){$('printBtn').style.display='block';$('printNote').textContent='สั่งพิมพ์ได้ทันทีด้วยปุ่ม “สั่งพิมพ์” หรือเปิดไฟล์ PDF ที่บันทึกไว้แล้วกด Ctrl+P'}

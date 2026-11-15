@@ -3,68 +3,163 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>เครื่องสร้างข้อสอบซูโดกุ</title>
+<title>SUDOKU RENMA · 数独練磨</title>
+<meta name="description" content="SUDOKU RENMA — เล่นซูโดกุ 20 รูปแบบบนเว็บ พร้อมระบบคำใบ้ และสร้างชุดข้อสอบซูโดกุตามแบบฟอร์มการแข่งขัน บันทึกเป็น PDF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&display=swap&text=SUDOKURENMA%20%E6%95%B0%E7%8B%AC%E7%B7%B4%E7%A3%A8%E9%81%8A%E4%BD%9C%E8%A8%98%E9%8C%B2%E6%AD%A3%E8%A7%A3" rel="stylesheet">
 <style>
   :root{
-    --bg:#f3f1ec; --panel:#ffffff; --ink:#1d1d1f; --muted:#6b6b70; --line:#e2dfd8;
-    --accent:#1f4e79; --accent-2:#e8eef5; --ok:#2e7d32; --warn:#b3261e;
+    --washi:#f4f1ea; --paper:#fffdf9; --sumi:#1d1c1a; --ink2:#5d5951; --mute:#8b867c; --line:#e2dccf; --line2:#cfc8b8;
+    --shu:#b8432f; --shu-soft:#f7e9e4; --ai:#24395a; --ai-soft:#e8edf4; --matcha:#5c7448; --ok:#5c7448; --warn:#b8432f;
+    --accent:var(--ai); --accent-2:var(--ai-soft); --muted:var(--mute); --ink:var(--sumi);
+    --mincho:'Shippori Mincho','Noto Serif JP','Yu Mincho',serif;
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
-  body{font-family:'Sarabun','TH SarabunPSK','Leelawadee UI','Tahoma',sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
-  .app{display:grid;grid-template-columns:400px 1fr;height:100vh}
-  aside{background:var(--panel);border-right:1px solid var(--line);overflow:auto;padding:18px 18px 28px}
-  main{overflow:auto;padding:24px}
-  h1{font-size:20px;margin:0 0 2px}
-  .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
-  fieldset{border:1px solid var(--line);border-radius:10px;padding:10px 12px 12px;margin:0 0 12px}
-  legend{font-weight:700;font-size:14px;padding:0 6px;color:var(--accent)}
-  label{display:block;font-size:13px;color:var(--muted);margin:6px 0 2px}
-  input[type=text],input[type=number],select{width:100%;font:inherit;font-size:14px;padding:6px 8px;border:1px solid #cfccc4;border-radius:7px;background:#fff;color:var(--ink)}
+  body{font-family:'Sarabun','Leelawadee UI','Tahoma',sans-serif;background:var(--washi);color:var(--sumi);font-size:15px;display:flex;flex-direction:column;
+    background-image:radial-gradient(circle at 1px 1px,rgba(0,0,0,.035) 1px,transparent 0);background-size:14px 14px}
+  button{font:inherit}
+
+  /* ===== header ===== */
+  header{display:flex;align-items:center;gap:18px;padding:0 22px;height:62px;background:var(--paper);border-bottom:1px solid var(--line);flex:none;position:relative}
+  header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--shu) 0 64px,transparent 64px)}
+  .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;white-space:nowrap}
+  .seal{width:34px;height:34px;background:var(--shu);color:#fff;display:grid;place-items:center;font-family:var(--mincho);font-weight:800;font-size:20px;border-radius:3px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.18)}
+  .brand-name{font-family:var(--mincho);font-weight:800;letter-spacing:.22em;font-size:18px;line-height:1}
+  .brand-sub{font-family:var(--mincho);font-size:11px;letter-spacing:.5em;color:var(--mute);margin-top:4px}
+  nav.tabs{display:flex;gap:4px;margin-left:12px}
+  nav.tabs button{border:0;background:none;padding:20px 14px 18px;cursor:pointer;color:var(--ink2);font-size:15px;position:relative;display:flex;align-items:center;gap:7px}
+  nav.tabs button .kj{font-family:var(--mincho);font-weight:800;font-size:13px;color:var(--mute)}
+  nav.tabs button.on{color:var(--sumi);font-weight:600}
+  nav.tabs button.on .kj{color:var(--shu)}
+  nav.tabs button.on::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:2px;background:var(--sumi)}
+  .hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .pill{border:1px solid var(--line2);background:var(--paper);color:var(--shu);border-radius:999px;padding:6px 14px;cursor:pointer;font-size:13.5px}
+  .pill:hover{background:var(--shu-soft)}
+  .pill .short{display:none}
+  .view{flex:1;min-height:0;display:none}
+  .view.on{display:flex}
+
+  /* ===== shared controls ===== */
+  fieldset{border:1px solid var(--line);border-radius:4px;padding:10px 12px 12px;margin:0 0 12px;background:var(--paper)}
+  legend{font-weight:600;font-size:13px;padding:0 6px;color:var(--ink2);letter-spacing:.04em}
+  label{display:block;font-size:12.5px;color:var(--mute);margin:6px 0 3px}
+  input[type=text],input[type=number],select{width:100%;font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line2);border-radius:3px;background:#fff;color:var(--sumi)}
+  input:focus,select:focus{outline:2px solid var(--ai-soft);border-color:var(--ai)}
   .row{display:flex;gap:8px;align-items:center}
-  .row>*{flex:1}
-  .seg{display:flex;border:1px solid #cfccc4;border-radius:8px;overflow:hidden}
-  .seg button{flex:1;border:0;background:#fff;font:inherit;font-size:14px;padding:7px 4px;cursor:pointer;color:var(--ink)}
-  .seg button+button{border-left:1px solid #cfccc4}
-  .seg button.on{background:var(--accent);color:#fff}
-  .items{display:flex;flex-direction:column;gap:6px}
-  .item{display:grid;grid-template-columns:22px minmax(0,1fr) 62px 50px 28px 28px;gap:4px;align-items:center}
-  .item .n{font-weight:700;text-align:right;font-size:13px;color:var(--muted)}
-  .item select,.item input{padding:5px 4px;font-size:13px}
-  .icon{border:1px solid #cfccc4;background:#fff;border-radius:6px;height:30px;cursor:pointer;font-size:14px;line-height:1;padding:0}
-  .icon:hover{background:var(--accent-2)}
-  .btn{display:block;width:100%;font:inherit;font-weight:700;font-size:15px;padding:10px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;margin-top:8px}
-  .btn.ghost{background:#fff;color:var(--accent)}
-  .btn:disabled{opacity:.55;cursor:wait}
-  .small{font-size:12.5px;color:var(--muted);line-height:1.5}
-  .check{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--ink);margin:4px 0}
+  .row>*{flex:1;min-width:0}
+  .seg{display:flex;border:1px solid var(--line2);border-radius:3px;overflow:hidden;background:#fff}
+  .seg button{flex:1;border:0;background:none;font-size:13.5px;padding:7px 4px;cursor:pointer;color:var(--ink2)}
+  .seg button+button{border-left:1px solid var(--line2)}
+  .seg button.on{background:var(--sumi);color:#fff}
+  .btn{display:block;width:100%;font-weight:600;font-size:14.5px;padding:10px;border-radius:3px;border:1px solid var(--sumi);background:var(--sumi);color:#fff;cursor:pointer;margin-top:8px;letter-spacing:.02em}
+  .btn:hover{opacity:.9}
+  .btn.ghost{background:var(--paper);color:var(--sumi);border-color:var(--line2)}
+  .btn.ghost:hover{border-color:var(--sumi)}
+  .btn.shu{background:var(--shu);border-color:var(--shu)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .small{font-size:12.5px;color:var(--mute);line-height:1.55}
+  .check{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--sumi);margin:4px 0}
   .status{margin-top:10px;font-size:13.5px;min-height:20px}
   .status.err{color:var(--warn)} .status.ok{color:var(--ok)}
-  .credit{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);text-align:center;line-height:1.6}
-  .credit-label{font-size:12px;letter-spacing:.02em}
-  .credit-name{font-size:15px;font-weight:700;color:var(--ink)}
-  .btn.support{background:#fff5f2;border-color:#d9775a;color:#b5472a;margin-top:14px}
-  .modal{position:fixed;inset:0;background:rgba(20,20,25,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
-  .modal.open{display:flex}
-  .modal-box{background:#fff;border-radius:14px;max-width:420px;width:100%;max-height:calc(100vh - 32px);overflow:auto;padding:20px 20px 18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25);position:relative}
-  .modal-box h2{font-size:19px;margin:2px 0 8px}
-  .modal-box p{font-size:14px;line-height:1.65;margin:0 0 12px;color:#333}
-  .modal-box img{width:100%;max-width:330px;border-radius:10px;border:1px solid var(--line)}
-  .modal-close{position:absolute;top:8px;right:10px;border:0;background:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1}
-  .contact{margin-top:12px;font-size:14px;padding-top:10px;border-top:1px solid var(--line)}
-  .contact a{color:var(--accent);font-weight:700;text-decoration:none}
+  .credit{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--mute);text-align:center;line-height:1.65}
+  .credit-label{font-size:11.5px;letter-spacing:.12em}
+  .credit-name{font-size:14.5px;font-weight:600;color:var(--sumi)}
+
+  /* ===== exam view ===== */
+  #viewExam{display:none}
+  #viewExam.on{display:grid;grid-template-columns:400px 1fr;width:100%}
+  #viewExam aside{background:var(--washi);border-right:1px solid var(--line);overflow:auto;padding:18px 18px 28px}
+  #viewExam main{overflow:auto;padding:24px}
+  .sec-title{font-family:var(--mincho);font-weight:800;font-size:13px;letter-spacing:.3em;color:var(--shu);margin-bottom:2px}
+  h1{font-size:19px;margin:0 0 2px;font-weight:700}
+  .sub{color:var(--mute);font-size:13px;margin-bottom:14px}
+  .items{display:flex;flex-direction:column;gap:6px}
+  .item{display:grid;grid-template-columns:22px minmax(0,1fr) 62px 50px 28px 28px;gap:4px;align-items:center}
+  .item .n{font-weight:600;text-align:right;font-size:12.5px;color:var(--mute)}
+  .item select,.item input{padding:5px 4px;font-size:13px}
+  .icon{border:1px solid var(--line2);background:#fff;border-radius:3px;height:30px;cursor:pointer;font-size:14px;line-height:1;padding:0;color:var(--ink2)}
+  .icon:hover{border-color:var(--sumi)}
   .pages{display:flex;flex-direction:column;align-items:center;gap:22px}
-  .page{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 6px 22px rgba(0,0,0,.08)}
+  .page{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.08),0 8px 24px rgba(60,50,30,.08)}
   .page canvas{display:block}
-  .pcap{font-size:12px;color:var(--muted);text-align:center;margin-top:4px}
-  .empty{color:var(--muted);text-align:center;margin-top:20vh;font-size:16px}
-  @media (max-width:900px){.app{grid-template-columns:1fr;height:auto}aside{border-right:0;border-bottom:1px solid var(--line)}main{padding:12px}}
+  .pcap{font-size:12px;color:var(--mute);text-align:center;margin-top:4px}
+  .empty{color:var(--mute);text-align:center;margin-top:20vh;font-size:16px}
+
+  /* ===== play view ===== */
+  #viewPlay{overflow:auto;justify-content:center;width:100%}
+  .play{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:26px;padding:22px;max-width:1120px;width:100%;align-items:start}
+  .board-card{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:14px 14px 16px;position:relative}
+  .board-head{display:flex;align-items:baseline;gap:10px;margin:0 2px 10px;flex-wrap:wrap}
+  .board-title{font-size:17px;font-weight:700}
+  .board-meta{font-size:13px;color:var(--mute)}
+  .timer{margin-left:auto;font-family:var(--mincho);font-weight:800;font-size:22px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+  .tbtn{border:1px solid var(--line2);background:#fff;border-radius:3px;padding:3px 9px;cursor:pointer;font-size:12.5px;color:var(--ink2)}
+  #boardWrap{position:relative;width:100%;touch-action:manipulation}
+  #board{display:block;margin:0 auto;cursor:pointer;outline:none}
+  .pause-cover{position:absolute;inset:0;background:var(--paper);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;font-size:16px;color:var(--ink2)}
+  .pause-cover.on{display:flex}
+  .rule-text{font-size:13.5px;line-height:1.65;color:var(--ink2);margin:12px 4px 0}
+  .keypad{display:grid;gap:6px;margin-top:12px}
+  .key{border:1px solid var(--line2);background:#fff;border-radius:3px;padding:10px 0;font-size:20px;cursor:pointer;color:var(--ai);font-weight:600}
+  .key:hover{border-color:var(--ai)}
+  .key.done{opacity:.35}
+  .tools{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+  .tool{border:1px solid var(--line2);background:#fff;border-radius:3px;padding:7px 0;font-size:13px;cursor:pointer;color:var(--ink2)}
+  .tool.on{background:var(--ai);border-color:var(--ai);color:#fff}
+  .side h3{font-size:12.5px;letter-spacing:.14em;color:var(--mute);margin:0 0 8px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .side h3 .kj{font-family:var(--mincho);color:var(--shu);font-size:14px;letter-spacing:0}
+  .side .block{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:14px;margin-bottom:14px}
+  .hint-box{font-size:14px;line-height:1.6;color:var(--ink2);min-height:22px;margin-top:8px}
+  .hint-steps{display:flex;gap:4px;margin-top:8px}
+  .hint-steps span{flex:1;height:3px;background:var(--line);border-radius:2px}
+  .hint-steps span.on{background:var(--shu)}
+  .hist{max-height:260px;overflow:auto;font-size:13px}
+  .hist table{width:100%;border-collapse:collapse}
+  .hist td{padding:5px 2px;border-bottom:1px solid var(--line);vertical-align:top}
+  .hist td.t{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+  .tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:2px;margin-left:4px}
+  .tag.ok{background:#e9efe2;color:var(--matcha)} .tag.rv{background:var(--shu-soft);color:var(--shu)}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;text-align:center}
+  .stats div{border:1px solid var(--line);border-radius:3px;padding:6px 2px}
+  .stats b{display:block;font-family:var(--mincho);font-size:18px}
+  .stats span{font-size:11.5px;color:var(--mute)}
+  .solved-banner{display:none;margin-top:12px;border:1px solid var(--shu);background:var(--shu-soft);color:var(--shu);border-radius:3px;padding:10px 12px;font-size:14.5px;text-align:center}
+  .solved-banner.on{display:block}
+  .solved-banner b{font-family:var(--mincho);font-size:18px}
+
+  /* ===== modal ===== */
+  .modal{position:fixed;inset:0;background:rgba(29,28,26,.5);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal.open{display:flex}
+  .modal-box{background:var(--paper);border-radius:4px;max-width:420px;width:100%;max-height:calc(100vh - 32px);overflow:auto;padding:22px 20px 18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25);position:relative;border-top:3px solid var(--shu)}
+  .modal-box h2{font-size:19px;margin:2px 0 8px}
+  .modal-box p{font-size:14px;line-height:1.65;margin:0 0 12px;color:var(--ink2)}
+  .modal-box img{width:100%;max-width:330px;border-radius:4px;border:1px solid var(--line)}
+  .modal-close{position:absolute;top:8px;right:10px;border:0;background:none;font-size:22px;cursor:pointer;color:var(--mute);line-height:1}
+  .contact{margin-top:12px;font-size:14px;padding-top:10px;border-top:1px solid var(--line)}
+  .contact a{color:var(--ai);font-weight:600;text-decoration:none}
+
+  @media (max-width:900px){
+    header{padding:0 12px;gap:8px;height:auto;flex-wrap:wrap;padding-top:8px}
+    nav.tabs{margin-left:0;order:3;width:100%}
+    nav.tabs button{padding:10px 12px 12px}
+    .brand-sub{display:none}
+    .pill .long{display:none} .pill .short{display:inline}
+    .brand-name{font-size:15px;letter-spacing:.16em}
+    #viewExam.on{grid-template-columns:1fr;display:block;overflow:auto}
+    #viewExam aside{border-right:0;border-bottom:1px solid var(--line)}
+    #viewExam main{padding:12px;overflow:visible}
+    .play{grid-template-columns:1fr;padding:10px;gap:14px}
+    body{height:auto;min-height:100%}
+    .view.on{overflow:visible}
+  }
   @media print{
-    aside,.pcap{display:none!important}
-    .app{display:block;height:auto} main{padding:0;overflow:visible}
+    header,aside,.pcap,#viewPlay{display:none!important}
+    body{display:block;background:#fff}
+    #viewExam.on{display:block}
+    main{padding:0!important;overflow:visible!important}
     .pages{gap:0;display:block}
     .page{box-shadow:none;break-after:page}
     .page.p{page:portrait} .page.l{page:landscape}
@@ -74,11 +169,84 @@
 <style id="pagestyle"></style>
 </head>
 <body>
-<div class="app">
-<aside>
-  <h1>เครื่องสร้างข้อสอบซูโดกุ</h1>
-  <div class="sub">สร้างชุดปริศนาซูโดกุตามแบบฟอร์ม พร้อมเฉลย บันทึกเป็น PDF เพื่อสั่งพิมพ์</div>
+<header>
+  <a class="brand" href="#play">
+    <div class="seal">練</div>
+    <div><div class="brand-name">SUDOKU RENMA</div><div class="brand-sub">数独練磨</div></div>
+  </a>
+  <nav class="tabs">
+    <button data-v="play" class="on"><span class="kj">遊</span>เล่นเกม</button>
+    <button data-v="exam"><span class="kj">作</span>สร้างข้อสอบ</button>
+  </nav>
+  <div class="hdr-right"><button class="pill" id="supportBtn">♥ <span class="long">สนับสนุนผู้พัฒนา</span><span class="short">สนับสนุน</span></button></div>
+</header>
 
+<!-- ========== เมนู 1: เล่นเกม ========== -->
+<section class="view on" id="viewPlay">
+  <div class="play">
+    <div>
+      <div class="board-card">
+        <div class="board-head">
+          <div class="board-title" id="gTitle">—</div>
+          <div class="board-meta" id="gMeta"></div>
+          <div class="timer" id="gTimer">00:00</div>
+          <button class="tbtn" id="gPause">หยุด</button>
+        </div>
+        <div id="boardWrap">
+          <canvas id="board" tabindex="0" aria-label="กระดานซูโดกุ"></canvas>
+          <div class="pause-cover" id="pauseCover"><div>หยุดเวลาชั่วคราว</div><button class="btn" style="width:auto;padding:8px 22px" id="gResume">เล่นต่อ</button></div>
+        </div>
+        <div class="keypad" id="keypad"></div>
+        <div class="tools">
+          <button class="tool" id="tNote" title="โหมดจดโน้ต (N)">✎ โน้ต</button>
+          <button class="tool" id="tErase" title="ลบ (Backspace)">ลบ</button>
+          <button class="tool" id="tUndo" title="ย้อนกลับ (Ctrl+Z)">↶ ย้อน</button>
+          <button class="tool" id="tCheck" title="ตรวจช่องที่ผิด">ตรวจ</button>
+        </div>
+        <div class="solved-banner" id="solvedBanner"></div>
+        <div class="rule-text" id="gRule"></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="block">
+        <h3><span class="kj">遊</span>เลือกโหมดเกม</h3>
+        <label>รูปแบบ</label><select id="pType"></select>
+        <div class="row">
+          <div><label>ขนาด</label><select id="pSize"></select></div>
+          <div><label>กรอบย่อย</label><select id="pBox"><option value="random">สุ่ม</option><option value="h">แนวนอน</option><option value="v">แนวตั้ง</option></select></div>
+        </div>
+        <label>ระดับความยาก</label>
+        <div class="seg" id="pDiff"><button data-d="easy">ง่าย</button><button data-d="medium">ปานกลาง</button><button data-d="hard">ยาก</button></div>
+        <button class="btn" id="pNew">เริ่มกระดานใหม่</button>
+      </div>
+      <div class="block">
+        <h3><span class="kj">正解</span>คำใบ้และเฉลย</h3>
+        <button class="btn ghost" id="pHint" style="margin-top:0">คำใบ้ (ขั้นที่ 1)</button>
+        <div class="hint-steps" id="hintSteps"><span></span><span></span><span></span></div>
+        <div class="hint-box" id="hintBox">คำใบ้จะค่อย ๆ บอกทีละขั้น: ชี้ช่อง → บอกตัวเลือก → เติมคำตอบ</div>
+        <button class="btn ghost" id="pReveal">ดูเฉลยทั้งกระดาน</button>
+      </div>
+      <div class="block">
+        <h3><span class="kj">記録</span>ประวัติการเล่น</h3>
+        <div class="stats" id="stats"></div>
+        <div class="hist" id="hist"></div>
+        <button class="btn ghost" id="histClear" style="font-size:13px;padding:7px">ล้างประวัติ</button>
+      </div>
+      <div class="credit" style="margin-top:6px">
+        <div class="credit-label">พัฒนาโดย</div>
+        <div class="credit-name">ครูอภิวัฒน์ ปาวงค์</div>
+        <div>โรงเรียนบ้านหนองเอี่ยนดง “ราษฎร์สงเคราะห์” จังหวัดมุกดาหาร</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== เมนู 2: สร้างข้อสอบ ========== -->
+<section class="view" id="viewExam">
+<aside>
+  <div class="sec-title">作 · EXAM</div>
+  <h1>สร้างชุดข้อสอบซูโดกุ</h1>
+  <div class="sub">สร้างชุดปริศนาตามแบบฟอร์มการแข่งขัน พร้อมเฉลย บันทึกเป็น PDF เพื่อสั่งพิมพ์</div>
   <fieldset>
     <legend>แบบฟอร์ม</legend>
     <div class="seg" id="presetSeg">
@@ -131,7 +299,6 @@
   <button class="btn ghost" id="printBtn" style="display:none" disabled>สั่งพิมพ์</button>
   <div class="status" id="status"></div>
   <div class="small" id="printNote" style="margin-top:6px">สั่งพิมพ์: เปิดไฟล์ PDF ที่บันทึกไว้ แล้วกด Ctrl+P (Mac: ⌘+P) — หน้าโจทย์เป็นแนวนอน หน้าปกและเฉลยเป็นแนวตั้ง</div>
-  <button class="btn support" id="supportBtn">♥ สนับสนุนผู้พัฒนา</button>
   <div class="credit">
     <div class="credit-label">พัฒนาโดย</div>
     <div class="credit-name">ครูอภิวัฒน์ ปาวงค์</div>
@@ -139,6 +306,9 @@
     <div>จังหวัดมุกดาหาร</div>
   </div>
 </aside>
+<main><div class="pages" id="pages"><div class="empty">กด “สร้างข้อสอบ” เพื่อดูตัวอย่าง</div></div></main>
+</section>
+
 <div class="modal" id="supportModal" role="dialog" aria-modal="true" aria-labelledby="supportTitle">
   <div class="modal-box">
     <button class="modal-close" id="supportClose" aria-label="ปิด">×</button>
@@ -148,8 +318,6 @@
     <div class="small" style="margin-top:6px">สแกนจ่ายผ่านแอปธนาคารได้ทุกธนาคาร</div>
     <div class="contact">ติดต่อ / แจ้งปัญหา / เสนอแนะ<br>Facebook : <a href="https://www.facebook.com/share/19k43qXSV7/" target="_blank" rel="noopener">Apiwat Pawong</a></div>
   </div>
-</div>
-<main><div class="pages" id="pages"><div class="empty">กด “สร้างข้อสอบ” เพื่อดูตัวอย่าง</div></div></main>
 </div>
 
 <script>
@@ -340,19 +508,9 @@ function neighborsOf(m,i){
 const POP=new Uint8Array(1024);for(let i=1;i<1024;i++)POP[i]=POP[i>>1]+(i&1);
 function rangeMask(lo,hi,N){lo=Math.max(1,lo);hi=Math.min(N,hi);if(lo>hi)return 0;return ((1<<(hi+1))-1)&~((1<<lo)-1)}
 
-/* ตัวแก้: นับคำตอบ (หยุดที่ limit) — รองรับ parity, ความสัมพันธ์คู่ช่อง, กรอบ Killer, ลูกศร Rossini */
-// ชนิดความสัมพันธ์คู่ช่อง: 0 ต่างกัน 1 | 1 ห้ามต่างกัน 1 | 2 รวม 10 | 3 รวม 5 | 4 ห้ามรวม 10/5 | 5 ช่องนี้ < เพื่อน | 6 ช่องนี้ > เพื่อน
-function solve(model,givens,opt){
-  const {N,n,cellGroups,groups}=model;
-  const FULL=((1<<(N+1))-1)&~1;
-  const limit=opt.limit||2, maxNodes=opt.maxNodes||300000, rng=opt.rng||null, parity=opt.parity||null;
+function candOf(model,grid,used,parity,c){
+  const N=model.N,FULL=((1<<(N+1))-1)&~1,cellGroups=model.cellGroups;
   const pairs=model.pairs,cages=model.cages,cageOf=model.cageOf,triples=model.triples,tripOf=model.tripOf;
-  const grid=Int8Array.from(givens), used=new Int32Array(groups.length);
-  for(let c=0;c<n;c++){const v=grid[c];if(!v)continue;const b=1<<v;
-    if(parity&&!(parity[c]&b))return{count:0,sol:null};
-    for(const g of cellGroups[c]){if(used[g]&b)return{count:0,sol:null};used[g]|=b}}
-  let count=0,nodes=0,sol=null,aborted=false;
-  function cand(c){
     let m=FULL; if(parity)m&=parity[c];
     const cg=cellGroups[c]; for(let i=0;i<cg.length;i++)m&=~used[cg[i]];
     if(!m)return 0;
@@ -381,6 +539,20 @@ function solve(model,givens,opt){
       if(!m)return 0;}}
     return m;
   }
+
+/* ตัวแก้: นับคำตอบ (หยุดที่ limit) — รองรับ parity, ความสัมพันธ์คู่ช่อง, กรอบ Killer, ลูกศร Rossini */
+// ชนิดความสัมพันธ์คู่ช่อง: 0 ต่างกัน 1 | 1 ห้ามต่างกัน 1 | 2 รวม 10 | 3 รวม 5 | 4 ห้ามรวม 10/5 | 5 ช่องนี้ < เพื่อน | 6 ช่องนี้ > เพื่อน
+function solve(model,givens,opt){
+  const {N,n,cellGroups,groups}=model;
+  const FULL=((1<<(N+1))-1)&~1;
+  const limit=opt.limit||2, maxNodes=opt.maxNodes||300000, rng=opt.rng||null, parity=opt.parity||null;
+  const pairs=model.pairs,cages=model.cages,cageOf=model.cageOf,triples=model.triples,tripOf=model.tripOf;
+  const grid=Int8Array.from(givens), used=new Int32Array(groups.length);
+  for(let c=0;c<n;c++){const v=grid[c];if(!v)continue;const b=1<<v;
+    if(parity&&!(parity[c]&b))return{count:0,sol:null};
+    for(const g of cellGroups[c]){if(used[g]&b)return{count:0,sol:null};used[g]|=b}}
+  let count=0,nodes=0,sol=null,aborted=false;
+  const cand=c=>candOf(model,grid,used,parity,c);
   function rec(){
     if(++nodes>maxNodes){aborted=true;return}
     let best=-1,bm=0,bc=99;
@@ -582,13 +754,14 @@ function arrow(ctx,x1,y1,x2,y2,hw){
   ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-ux*hl-uy*hw,y2-uy*hl+ux*hw);ctx.lineTo(x2-ux*hl+uy*hw,y2-uy*hl-ux*hw);ctx.closePath();ctx.fill();
 }
 
-function drawGrid(ctx,P,x,y,S,mode){ // x,y = มุมซ้ายบนของช่องแรก
+function drawGrid(ctx,P,x,y,S,mode,opt){ // x,y = มุมซ้ายบนของช่องแรก; opt.under = วาดใต้เส้น, opt.noDigits
   const m=P.model,N=P.N,n=m.n,pos=m.pos;
   const cx=i=>x+pos[i][1]*S, cy=i=>y+pos[i][0]*S;
   const at=(r,c)=>(r<0||c<0||r>=m.R||c>=m.C)?-1:m.idxAt[r*m.C+c];
   ctx.save();
   // พื้นและแรเงา
   for(let i=0;i<n;i++){ctx.fillStyle=m.shade[i]?SHADE_COL[m.shade[i]]:'#fff';ctx.fillRect(cx(i),cy(i),S,S)}
+  if(opt&&opt.under)opt.under(cx,cy);
   // เส้นทแยง
   if(m.diagSquares.length){
     ctx.strokeStyle='#9a9a9a';ctx.lineWidth=Math.max(0.5,S/45);ctx.setLineDash([S*0.14,S*0.1]);ctx.beginPath();
@@ -693,7 +866,7 @@ function drawGrid(ctx,P,x,y,S,mode){ // x,y = มุมซ้ายบนขอ�
   if(P.marks.bars||P.marks.xv||P.marks.ineq)fs*=0.86;
   if(m.cages)fs*=0.82;
   const dy=m.cages?S*0.06:0;
-  for(let i=0;i<n;i++){
+  if(!(opt&&opt.noDigits))for(let i=0;i<n;i++){
     const g=P.givens[i];let v=g;
     if(mode==='answer')v=P.sol[i];
     if(!v)continue;
@@ -1044,9 +1217,334 @@ if(window.top===window.self){$('printBtn').style.display='block';$('printNote').
 
 state=load()||defaultState('r1');
 renderForm();
-generate();
 getDownloads();
 window.__test={generatePuzzle,solve,buildModel,buildPDFBlob,get state(){return state},set state(s){state=s},generate,get puzzles(){return puzzles}};
+
+/* ================== เมนู 1: เล่นเกม ================== */
+const PLAY_KEY='renmaGame',HIST_KEY='renmaHistory',PREF_KEY='renmaPlayPref';
+const DIFF_TH={easy:'ง่าย',medium:'ปานกลาง',hard:'ยาก'};
+const G={P:null,cfg:null,val:null,notes:null,wrong:null,sel:-1,noteMode:false,undo:[],secs:0,paused:false,done:false,revealed:false,hints:0,hint:{level:0,cell:-1},L:null};
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+const fmtTime=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+const modeLabel=c=>{const T=TYPES[c.type];return (T.rule==='gattai'||T.rule==='gattaidiag')?T.en:`${c.size}x${c.size} ${T.en}`};
+const playActive=()=>$('viewPlay').classList.contains('on');
+
+/* ---------- ตั้งค่าเลือกโหมด ---------- */
+let pref=lsGet(PREF_KEY,{type:'classic',size:9,diff:'easy',box:'random'});
+if(!TYPES[pref.type])pref.type='classic';
+function renderPlayForm(){
+  $('pType').innerHTML=Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${k===pref.type?' selected':''}>${v.th}</option>`).join('');
+  const sizes=TYPES[pref.type].sizes;if(!sizes.includes(pref.size))pref.size=sizes.at(-1);
+  $('pSize').innerHTML=sizes.map(s=>`<option value="${s}"${s===pref.size?' selected':''}>${s}x${s}${(TYPES[pref.type].rule||'').startsWith('gattai')?' (2 ตาราง)':''}</option>`).join('');
+  $('pBox').value=pref.box;$('pBox').disabled=pref.size===9;
+  document.querySelectorAll('#pDiff button').forEach(b=>b.classList.toggle('on',b.dataset.d===pref.diff));
+}
+$('pType').onchange=()=>{pref.type=$('pType').value;renderPlayForm();lsSet(PREF_KEY,pref)};
+$('pSize').onchange=()=>{pref.size=+$('pSize').value;renderPlayForm();lsSet(PREF_KEY,pref)};
+$('pBox').onchange=()=>{pref.box=$('pBox').value;lsSet(PREF_KEY,pref)};
+document.querySelectorAll('#pDiff button').forEach(b=>b.onclick=()=>{pref.diff=b.dataset.d;renderPlayForm();lsSet(PREF_KEY,pref)});
+
+/* ---------- เริ่ม / โหลดเกม ---------- */
+function startGame(cfg,saved){
+  const P=generatePuzzle(cfg.type,cfg.size,cfg.diff,hashStr('play|'+cfg.seed),cfg.box);
+  const n=P.model.n;
+  Object.assign(G,{P,cfg,val:new Int8Array(n),notes:new Int16Array(n),wrong:new Uint8Array(n),sel:-1,undo:[],secs:0,paused:false,done:false,revealed:false,hints:0,hint:{level:0,cell:-1}});
+  if(saved){
+    if(saved.val)G.val=Int8Array.from(saved.val);
+    if(saved.notes)G.notes=Int16Array.from(saved.notes);
+    Object.assign(G,{secs:saved.secs||0,hints:saved.hints||0,done:!!saved.done,revealed:!!saved.revealed});
+  }
+  $('gTitle').textContent=modeLabel(cfg);
+  $('gMeta').textContent=`${DIFF_TH[cfg.diff]} · รหัส ${cfg.seed}`;
+  $('gRule').textContent=instruction(cfg.type,cfg.size,'edu',P.orient);
+  $('hintBox').textContent='คำใบ้จะค่อย ๆ บอกทีละขั้น: ชี้ช่อง → บอกตัวเลือก → เติมคำตอบ';
+  $('pauseCover').classList.remove('on');$('gPause').textContent='หยุด';
+  buildKeypad();updateHintUI();updateBanner();layoutBoard();saveGame();
+}
+function newGame(){
+  $('pNew').disabled=true;$('pNew').textContent='กำลังสร้างกระดาน …';
+  setTimeout(()=>{
+    try{startGame({type:pref.type,size:pref.size,diff:pref.diff,box:pref.box,seed:randomSeed()})}
+    catch(e){console.error(e);$('hintBox').textContent='สร้างกระดานไม่สำเร็จ ลองกดอีกครั้ง'}
+    $('pNew').disabled=false;$('pNew').textContent='เริ่มกระดานใหม่';
+  },20);
+}
+function saveGame(){
+  if(!G.P)return;
+  lsSet(PLAY_KEY,{cfg:G.cfg,val:Array.from(G.val),notes:Array.from(G.notes),secs:G.secs,hints:G.hints,done:G.done,revealed:G.revealed});
+}
+$('pNew').onclick=newGame;
+
+/* ---------- วาดกระดาน ---------- */
+function layoutBoard(){
+  if(!G.P||!playActive())return;
+  const wrap=$('boardWrap'),cv=$('board');
+  const ext=gridExtent(G.P);
+  const maxW=Math.min(wrap.clientWidth,620),maxH=Math.max(320,window.innerHeight-260);
+  const S=Math.floor(Math.min(maxW/ext.w,maxH/ext.h,G.P.model.C>9?40:64));
+  const W=Math.round(S*ext.w),H=Math.round(S*ext.h),dpr=window.devicePixelRatio||1;
+  cv.style.width=W+'px';cv.style.height=H+'px';cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+  G.L={S,ox:ext.pad*S,oy:ext.pad*S,W,H,dpr};
+  drawBoard();
+}
+function relatedCells(i){
+  const s=new Set();for(const g of G.P.model.cellGroups[i])for(const c of G.P.model.groups[g])s.add(c);return s;
+}
+function cellValue(i){return G.P.givens[i]||(G.revealed?G.P.sol[i]:G.val[i])}
+function conflicts(){
+  const P=G.P,m=P.model,bad=new Uint8Array(m.n);
+  for(const g of m.groups){const seen={};for(const c of g){const v=P.givens[c]||G.val[c];if(!v)continue;if(seen[v]!==undefined){bad[c]=1;bad[seen[v]]=1}else seen[v]=c}}
+  return bad;
+}
+function drawBoard(){
+  const P=G.P,L=G.L;if(!P||!L)return;
+  const cv=$('board'),ctx=cv.getContext('2d');
+  ctx.setTransform(L.dpr,0,0,L.dpr,0,0);ctx.clearRect(0,0,L.W,L.H);
+  const m=P.model,n=m.n,S=L.S;
+  const selV=G.sel>=0?cellValue(G.sel):0;
+  const rel=G.sel>=0?relatedCells(G.sel):null;
+  drawGrid(ctx,P,L.ox,L.oy,S,'puzzle',{noDigits:true,under:(cx,cy)=>{
+    for(let i=0;i<n;i++){
+      let a=0;
+      if(rel&&rel.has(i))a=0.07;
+      if(selV&&cellValue(i)===selV)a=0.17;
+      if(i===G.sel)a=0.26;
+      if(a){ctx.fillStyle=`rgba(36,57,90,${a})`;ctx.fillRect(cx(i),cy(i),S,S)}
+      if(i===G.hint.cell&&G.hint.level>0){ctx.fillStyle='rgba(184,67,47,.22)';ctx.fillRect(cx(i),cy(i),S,S)}
+    }
+  }});
+  const cx=i=>L.ox+m.pos[i][1]*S,cy=i=>L.oy+m.pos[i][0]*S;
+  const sy=SYMBOLS[P.sym];
+  let fs=S*(P.sym==='thai'?0.56:0.6);
+  if(P.marks.bars||P.marks.xv||P.marks.ineq)fs*=0.86;
+  if(m.cages)fs*=0.82;
+  const dy=m.cages?S*0.06:0;
+  const bad=conflicts();
+  for(let i=0;i<n;i++){
+    const g=P.givens[i];
+    if(g){font(ctx,fs,true);ctx.fillStyle='#1d1c1a';textAt(ctx,sy[g],cx(i)+S/2,cy(i)+S/2+fs*0.36+dy,'center');continue}
+    const v=G.revealed?P.sol[i]:G.val[i];
+    if(v){
+      const isBad=!G.revealed&&(bad[i]||G.wrong[i]);
+      font(ctx,fs,false);ctx.fillStyle=G.revealed&&!G.val[i]?'#8b867c':isBad?'#b8432f':'#24395a';
+      textAt(ctx,sy[v],cx(i)+S/2,cy(i)+S/2+fs*0.36+dy,'center');
+      if(G.wrong[i]&&!G.revealed){ctx.strokeStyle='#b8432f';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(cx(i)+S*0.25,cy(i)+S*0.82);ctx.lineTo(cx(i)+S*0.75,cy(i)+S*0.82);ctx.stroke()}
+    }else if(G.notes[i]){
+      const nf=S*(N3(P.N)?0.24:0.2);font(ctx,nf,false);ctx.fillStyle='#6b6f78';
+      const cols=P.N<=6?3:P.N===8?4:3,rows=Math.ceil(P.N/cols);
+      for(let v=1;v<=P.N;v++){if(!(G.notes[i]>>v&1))continue;
+        const k=v-1,c=k%cols,r=Math.floor(k/cols);
+        textAt(ctx,sy[v],cx(i)+S*(0.2+0.6*c/(cols-1)),cy(i)+S*(0.24+0.56*r/Math.max(1,rows-1))+nf*0.34+(m.cages?S*0.04:0),'center');
+      }
+    }
+  }
+  if(G.sel>=0){ctx.strokeStyle='#24395a';ctx.lineWidth=2;ctx.strokeRect(cx(G.sel)+1.5,cy(G.sel)+1.5,S-3,S-3)}
+  updateKeypadState();
+}
+function N3(N){return N<=6}
+
+/* ---------- แป้นกด ---------- */
+function buildKeypad(){
+  const P=G.P,sy=SYMBOLS[P.sym],kp=$('keypad');
+  const cols=P.N<=6?P.N:P.N===8?8:9;
+  kp.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  kp.innerHTML='';
+  for(let v=1;v<=P.N;v++){const b=document.createElement('button');b.className='key';b.textContent=sy[v];b.dataset.v=v;b.onclick=()=>{inputValue(v);$('board').focus({preventScroll:true})};kp.appendChild(b)}
+}
+function updateKeypadState(){
+  const P=G.P;if(!P)return;const cnt=new Array(P.N+1).fill(0);
+  for(let i=0;i<P.model.n;i++){const v=P.givens[i]||G.val[i];if(v&&(P.givens[i]||G.val[i]===P.sol[i]||true))cnt[v]++}
+  const need=P.model.n/P.N;
+  document.querySelectorAll('#keypad .key').forEach(b=>b.classList.toggle('done',cnt[+b.dataset.v]>=need));
+  $('tNote').classList.toggle('on',G.noteMode);
+}
+
+/* ---------- การป้อนค่า ---------- */
+function editable(){return G.P&&!G.done&&!G.revealed&&!G.paused&&G.sel>=0&&!G.P.givens[G.sel]}
+function pushUndo(i){G.undo.push({i,v:G.val[i],n:G.notes[i]});if(G.undo.length>300)G.undo.shift()}
+function inputValue(v){
+  if(!editable())return;const i=G.sel;
+  pushUndo(i);
+  if(G.noteMode&&!G.val[i]){G.notes[i]^=1<<v}
+  else{
+    G.val[i]=G.val[i]===v?0:v;G.notes[i]=0;G.wrong[i]=0;
+    if(G.val[i])for(const c of relatedCells(i))G.notes[c]&=~(1<<v);
+    if(G.hint.cell===i){G.hint={level:0,cell:-1};updateHintUI()}
+  }
+  drawBoard();checkSolved();saveGame();
+}
+function eraseCell(){if(!editable())return;const i=G.sel;pushUndo(i);G.val[i]=0;G.notes[i]=0;G.wrong[i]=0;drawBoard();saveGame()}
+function undoMove(){if(G.done||G.revealed)return;const u=G.undo.pop();if(!u)return;G.val[u.i]=u.v;G.notes[u.i]=u.n;G.wrong[u.i]=0;G.sel=u.i;drawBoard();saveGame()}
+function moveSel(dr,dc){
+  const m=G.P.model;if(G.sel<0){G.sel=m.idxAt.findIndex(x=>x>=0);drawBoard();return}
+  let [r,c]=m.pos[G.sel];
+  for(let k=0;k<m.R+m.C;k++){r+=dr;c+=dc;if(r<0||c<0||r>=m.R||c>=m.C)return;const j=m.idxAt[r*m.C+c];if(j>=0){G.sel=j;drawBoard();return}}
+}
+$('board').addEventListener('pointerdown',e=>{
+  if(!G.P||!G.L||G.paused)return;
+  const rect=e.currentTarget.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top;
+  const m=G.P.model,c=Math.floor((x-G.L.ox)/G.L.S),r=Math.floor((y-G.L.oy)/G.L.S);
+  if(r<0||c<0||r>=m.R||c>=m.C)return;
+  const j=m.idxAt[r*m.C+c];if(j<0)return;
+  G.sel=j;drawBoard();
+});
+document.addEventListener('keydown',e=>{
+  if(!playActive()||!G.P||$('supportModal').classList.contains('open'))return;
+  const tag=(e.target.tagName||'').toLowerCase();if(tag==='input'||tag==='select'||tag==='textarea')return;
+  const k=e.key;
+  if((e.ctrlKey||e.metaKey)&&k.toLowerCase()==='z'){undoMove();e.preventDefault();return}
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(k==='ArrowUp'){moveSel(-1,0);e.preventDefault();return}
+  if(k==='ArrowDown'){moveSel(1,0);e.preventDefault();return}
+  if(k==='ArrowLeft'){moveSel(0,-1);e.preventDefault();return}
+  if(k==='ArrowRight'){moveSel(0,1);e.preventDefault();return}
+  if(k==='Backspace'||k==='Delete'||k==='0'){eraseCell();e.preventDefault();return}
+  if(k==='n'||k==='N'){if(G.P.sym!=='alpha'||!'ABCDEFGHI'.slice(0,G.P.N).includes('N')){G.noteMode=!G.noteMode;updateKeypadState();return}}
+  let v=0;
+  if(/^[1-9]$/.test(k))v=+k;
+  else if(G.P.sym==='alpha'&&/^[a-iA-I]$/.test(k))v=k.toUpperCase().charCodeAt(0)-64;
+  if(v&&v<=G.P.N){inputValue(v);e.preventDefault()}
+});
+$('tNote').onclick=()=>{G.noteMode=!G.noteMode;updateKeypadState()};
+$('tErase').onclick=eraseCell;
+$('tUndo').onclick=undoMove;
+$('tCheck').onclick=()=>{
+  if(!G.P||G.done||G.revealed)return;
+  let k=0;for(let i=0;i<G.P.model.n;i++)if(G.val[i]&&G.val[i]!==G.P.sol[i]){G.wrong[i]=1;k++}
+  G.hints++;
+  $('hintBox').textContent=k?`มี ${k} ช่องที่ยังไม่ถูกต้อง (ขีดเส้นใต้สีแดง) — การตรวจนับเป็นการใช้คำใบ้ 1 ครั้ง`:'ช่องที่เติมไว้ถูกต้องทั้งหมด เยี่ยมมาก — การตรวจนับเป็นการใช้คำใบ้ 1 ครั้ง';
+  drawBoard();saveGame();
+};
+
+/* ---------- คำใบ้ตามลำดับขั้น ---------- */
+function candidatesNow(){
+  const P=G.P,m=P.model,N=P.N,grid=new Int8Array(m.n);
+  for(let i=0;i<m.n;i++)grid[i]=P.givens[i]||(G.val[i]===P.sol[i]?G.val[i]:0);
+  const used=new Int32Array(m.groups.length);
+  for(let i=0;i<m.n;i++)if(grid[i])for(const g of m.cellGroups[i])used[g]|=1<<grid[i];
+  let parity=null;
+  if(P.rule==='evenodd'){let E=0,O=0;for(let v=1;v<=N;v++){if(v%2===0)E|=1<<v;else O|=1<<v}parity=new Int32Array(m.n);for(let i=0;i<m.n;i++)parity[i]=m.shade[i]?E:O}
+  const masks=new Int32Array(m.n);
+  for(let i=0;i<m.n;i++)if(!grid[i])masks[i]=candOf(m,grid,used,parity,i)|(1<<P.sol[i]);
+  return {grid,masks};
+}
+function pickHintCell(){
+  const {grid,masks}=candidatesNow();let best=-1,bp=99;
+  for(let i=0;i<G.P.model.n;i++){if(grid[i])continue;const p=POP[masks[i]];if(p<bp){bp=p;best=i}}
+  return {cell:best,pop:bp,mask:best>=0?masks[best]:0};
+}
+function updateHintUI(){
+  const lv=G.hint.level;
+  document.querySelectorAll('#hintSteps span').forEach((s,i)=>s.classList.toggle('on',i<lv));
+  $('pHint').textContent=`คำใบ้ (ขั้นที่ ${Math.min(lv+1,3)})`;
+  $('pHint').disabled=!G.P||G.done||G.revealed;
+}
+function giveHint(){
+  if(!G.P||G.done||G.revealed)return;
+  if(G.paused)resumeGame();
+  const P=G.P,sy=SYMBOLS[P.sym];
+  let wrongs=0;for(let i=0;i<P.model.n;i++)if(G.val[i]&&G.val[i]!==P.sol[i]&&!G.wrong[i]){G.wrong[i]=1;wrongs++}
+  if(wrongs){G.hints++;$('hintBox').textContent=`ก่อนอื่น มี ${wrongs} ช่องที่เติมไม่ถูกต้อง (ขีดเส้นใต้สีแดง) ลองแก้ไขดูก่อน แล้วกดคำใบ้อีกครั้ง`;drawBoard();saveGame();return}
+  const h=G.hint;
+  if(h.cell<0||G.val[h.cell]===P.sol[h.cell]){const p=pickHintCell();if(p.cell<0)return;G.hint={level:0,cell:p.cell,pop:p.pop,mask:p.mask}}
+  const H=G.hint;H.level++;G.hints++;G.sel=H.cell;
+  const vals=[];for(let v=1;v<=P.N;v++)if(H.mask>>v&1)vals.push(sy[v]);
+  if(H.level===1){
+    $('hintBox').innerHTML=H.pop===1
+      ?'<b>ขั้นที่ 1:</b> ดูช่องที่ไฮไลต์สีแดง — ช่องนี้หาคำตอบได้แน่นอนจากตัวเลขที่มีอยู่ ลองไล่ดูแถว คอลัมน์ กรอบย่อย และเงื่อนไขพิเศษของช่องนี้'
+      :'<b>ขั้นที่ 1:</b> ดูช่องที่ไฮไลต์สีแดง — ตอนนี้ช่องนี้มีตัวเลือกน้อยที่สุดบนกระดาน ลองตัดตัวเลือกที่เป็นไปไม่ได้ออก';
+  }else if(H.level===2){
+    if(!G.val[H.cell])G.notes[H.cell]=H.mask;
+    $('hintBox').innerHTML=`<b>ขั้นที่ 2:</b> ช่องนี้เป็นได้เพียง <b>${vals.join(', ')}</b> (จดเป็นโน้ตไว้ให้แล้ว)`;
+  }else{
+    G.val[H.cell]=P.sol[H.cell];G.notes[H.cell]=0;G.wrong[H.cell]=0;
+    for(const c of relatedCells(H.cell))G.notes[c]&=~(1<<P.sol[H.cell]);
+    $('hintBox').innerHTML=`<b>ขั้นที่ 3:</b> คำตอบของช่องนี้คือ <b>${sy[P.sol[H.cell]]}</b> — กดคำใบ้อีกครั้งเพื่อเริ่มช่องถัดไป`;
+    G.hint={level:0,cell:-1};
+  }
+  updateHintUI();drawBoard();checkSolved();saveGame();
+}
+$('pHint').onclick=giveHint;
+let revealArm=0;
+$('pReveal').onclick=()=>{
+  if(!G.P||G.done)return;
+  if(Date.now()-revealArm>3000){revealArm=Date.now();$('pReveal').textContent='กดอีกครั้งเพื่อยืนยันการดูเฉลย';setTimeout(()=>{$('pReveal').textContent='ดูเฉลยทั้งกระดาน'},3000);return}
+  revealArm=0;$('pReveal').textContent='ดูเฉลยทั้งกระดาน';
+  G.revealed=true;G.done=true;G.sel=-1;
+  addHistory('revealed');
+  $('hintBox').textContent='แสดงเฉลยแล้ว ตัวเลขสีเทาคือคำตอบที่ยังไม่ได้เติม — เริ่มกระดานใหม่ได้ทางด้านบน';
+  updateHintUI();updateBanner();drawBoard();saveGame();
+};
+
+/* ---------- ตรวจจบเกม / เวลา ---------- */
+function checkSolved(){
+  const P=G.P;if(G.done)return;
+  for(let i=0;i<P.model.n;i++){if(!P.givens[i]&&G.val[i]!==P.sol[i])return}
+  G.done=true;G.sel=-1;addHistory('solved');updateHintUI();updateBanner();drawBoard();saveGame();
+}
+function updateBanner(){
+  const b=$('solvedBanner');
+  if(G.done&&!G.revealed){b.innerHTML=`<b>正解</b> &nbsp;เยี่ยมมาก! แก้สำเร็จในเวลา ${fmtTime(G.secs)}${G.hints?` · ใช้คำใบ้ ${G.hints} ครั้ง`:' · ไม่ใช้คำใบ้เลย'}`;b.classList.add('on')}
+  else b.classList.remove('on');
+}
+function resumeGame(){G.paused=false;$('pauseCover').classList.remove('on');$('gPause').textContent='หยุด';drawBoard()}
+$('gPause').onclick=()=>{if(!G.P||G.done)return;if(G.paused){resumeGame();return}G.paused=true;$('pauseCover').classList.add('on');$('gPause').textContent='เล่นต่อ'};
+$('gResume').onclick=resumeGame;
+setInterval(()=>{
+  if(!G.P||G.done||G.paused||!playActive()||document.visibilityState!=='visible')return;
+  G.secs++;$('gTimer').textContent=fmtTime(G.secs);if(G.secs%5===0)saveGame();
+},1000);
+
+/* ---------- ประวัติ ---------- */
+function addHistory(st){
+  const h=lsGet(HIST_KEY,[]);
+  h.unshift({d:Date.now(),type:G.cfg.type,size:G.cfg.size,diff:G.cfg.diff,secs:G.secs,hints:G.hints,st});
+  lsSet(HIST_KEY,h.slice(0,300));renderHistory();
+}
+function renderHistory(){
+  const h=lsGet(HIST_KEY,[]),c=G.cfg||{type:pref.type,size:pref.size,diff:pref.diff};
+  const solved=h.filter(x=>x.st==='solved');
+  const same=solved.filter(x=>x.type===c.type&&x.size===c.size&&x.diff===c.diff);
+  const best=same.length?Math.min(...same.map(x=>x.secs)):null;
+  const avg=same.length?Math.round(same.reduce((a,x)=>a+x.secs,0)/same.length):null;
+  $('stats').innerHTML=`<div><b>${solved.length}</b><span>แก้สำเร็จ</span></div><div><b>${best!==null?fmtTime(best):'–'}</b><span>ดีที่สุด (โหมดนี้)</span></div><div><b>${avg!==null?fmtTime(avg):'–'}</b><span>เฉลี่ย (โหมดนี้)</span></div>`;
+  if(!h.length){$('hist').innerHTML='<div class="small">ยังไม่มีประวัติ — เล่นจบกระดานแรกแล้วจะบันทึกไว้ที่นี่ (เก็บในเบราว์เซอร์เครื่องนี้)</div>';return}
+  const d2=t=>{const d=new Date(t);return `${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`};
+  $('hist').innerHTML='<table>'+h.slice(0,40).map(x=>`<tr><td>${modeLabel(x)} · ${DIFF_TH[x.diff]}<span class="tag ${x.st==='solved'?'ok':'rv'}">${x.st==='solved'?'สำเร็จ':'ดูเฉลย'}</span><br><span class="small">${d2(x.d)}${x.hints?` · คำใบ้ ${x.hints}`:''}</span></td><td class="t">${fmtTime(x.secs)}</td></tr>`).join('')+'</table>';
+}
+let clearArm=0;
+$('histClear').onclick=()=>{
+  if(Date.now()-clearArm>3000){clearArm=Date.now();$('histClear').textContent='กดอีกครั้งเพื่อยืนยันการล้างประวัติ';setTimeout(()=>{$('histClear').textContent='ล้างประวัติ'},3000);return}
+  clearArm=0;$('histClear').textContent='ล้างประวัติ';lsSet(HIST_KEY,[]);renderHistory();
+};
+
+/* ---------- สลับเมนู ---------- */
+let examStarted=false;
+function showView(v){
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  $('viewPlay').classList.toggle('on',v==='play');$('viewExam').classList.toggle('on',v==='exam');
+  if(v==='exam'&&!examStarted){examStarted=true;generate()}
+  if(v==='play')requestAnimationFrame(layoutBoard);
+  try{history.replaceState(null,'',v==='exam'?'#exam':'#play')}catch(e){}
+}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>showView(b.dataset.v));
+window.addEventListener('resize',()=>{if(playActive())layoutBoard()});
+window.addEventListener('hashchange',()=>showView(location.hash==='#exam'?'exam':'play'));
+
+/* ---------- เริ่มต้น ---------- */
+(async()=>{
+  renderPlayForm();renderHistory();
+  await ensureFonts();
+  const saved=lsGet(PLAY_KEY,null);
+  showView(location.hash==='#exam'?'exam':'play');
+  try{
+    if(saved&&saved.cfg&&TYPES[saved.cfg.type])startGame(saved.cfg,saved);
+    else startGame({type:pref.type,size:pref.size,diff:pref.diff,box:pref.box,seed:randomSeed()});
+  }catch(e){console.error(e)}
+  $('gTimer').textContent=fmtTime(G.secs);renderHistory();
+})();
+window.__play=G;
 </script>
 </body>
 </html>

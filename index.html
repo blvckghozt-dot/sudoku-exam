@@ -963,51 +963,49 @@ function coverPage(st,puzzles){
 }
 
 
-/* หน้าปกแบบบันทึกคะแนน ระดับมัธยม (A4 แนวนอน ครึ่งซ้าย) */
+/* หน้าปกแบบบันทึกคะแนน ระดับมัธยม (A4 แนวตั้ง เต็มหน้า) */
 function coverPageHS(st,puzzles){
-  return {orient:'l',draw(ctx,W,H){
-    const M=40,gap=40,colW=(W-2*M-gap)/2,x0=M,cxm=x0+colW/2;
-    ctx.strokeStyle='#000';ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(W/2,M);ctx.lineTo(W/2,H-M);ctx.stroke();
-    ctx.fillStyle='#000';let y=M+12;
-    font(ctx,13.5,true);
-    for(const t of [st.t1,st.t2,st.t3]){if(!t)continue;for(const l of wrap(ctx,t,colW)){textAt(ctx,l,cxm,y,'center');y+=19}}
-    y+=14;font(ctx,12.5,false);
-    const field=(label)=>{const lx=x0+40;textAt(ctx,label,lx,y);dotted(ctx,lx+ctx.measureText(label).width+3,x0+colW-40,y+1);y+=21};
+  return {orient:'p',draw(ctx,W,H){
+    const M=60,colW=W-2*M,x0=M,cxm=W/2;
+    ctx.fillStyle='#000';let y=82;
+    font(ctx,17,true);
+    for(const t of [st.t1,st.t2,st.t3]){if(!t)continue;for(const l of wrap(ctx,t,colW)){textAt(ctx,l,cxm,y,'center');y+=27}}
+    y+=24;font(ctx,14,false);
+    const field=(label)=>{const lx=x0+60;textAt(ctx,label,lx,y);dotted(ctx,lx+ctx.measureText(label).width+4,x0+colW-60,y+1);y+=32};
     field('ชื่อ-สกุล');field('โรงเรียน');
-    y+=6;font(ctx,12.5,true);textAt(ctx,'แบบบันทึกคะแนน (สำหรับคณะกรรมการ)',cxm,y,'center');y+=6;
+    y+=8;font(ctx,15,true);textAt(ctx,'แบบบันทึกคะแนน (สำหรับคณะกรรมการ)',cxm,y,'center');y+=12;
     // ตารางคะแนน
-    const n=st.items.length,avail=H-M-y-150,rh=Math.max(12.5,Math.min(17,avail/(n+2)));
-    const cw=[34,colW-34-62-70,62,70],xs=[x0];cw.forEach(w=>xs.push(xs.at(-1)+w));
+    const n=st.items.length,rh=n>12?18:n>10?22:26,fs=n>12?12:13.5;
+    const cw=[52,colW-52-92-100,92,100],xs=[x0];cw.forEach(w=>xs.push(xs.at(-1)+w));
     const row=(cells,bold,h)=>{
-      ctx.strokeStyle='#000';ctx.lineWidth=0.7;
+      ctx.strokeStyle='#000';ctx.lineWidth=0.8;
       for(let k=0;k<4;k++)ctx.strokeRect(xs[k],y,cw[k],h);
-      font(ctx,Math.min(11.5,rh*0.72),bold);
-      cells.forEach((c,k)=>{if(c===''||c==null)return;const al=k===1?'left':'center';textAt(ctx,String(c),al==='left'?xs[k]+6:xs[k]+cw[k]/2,y+h/2+4,al)});
+      font(ctx,fs,bold);
+      cells.forEach((c,k)=>{if(c===''||c==null)return;const left=k===1;textAt(ctx,String(c),left?xs[k]+10:xs[k]+cw[k]/2,y+h/2+fs*0.36,left?'left':'center')});
       y+=h;
     };
-    row(['ข้อที่','รูปแบบ','คะแนนเต็ม','คะแนนที่ได้'],true,rh+2);
+    row(['ข้อที่','รูปแบบ','คะแนนเต็ม','คะแนนที่ได้'],true,rh+4);
     let total=0;
     st.items.forEach((it,i)=>{const p=itemPoints(st,i,puzzles&&puzzles[i]);total+=p;row([i+1,itemTitle(it,st.style),p,''],false,rh)});
-    // แถวรวม (ผสานสองช่องแรก)
     ctx.strokeRect(xs[0],y,cw[0]+cw[1],rh);ctx.strokeRect(xs[2],y,cw[2],rh);ctx.strokeRect(xs[3],y,cw[3],rh);
-    font(ctx,Math.min(11.5,rh*0.72),true);textAt(ctx,'รวม',(xs[0]+xs[2])/2,y+rh/2+4,'center');textAt(ctx,String(total),xs[2]+cw[2]/2,y+rh/2+4,'center');y+=rh;
+    font(ctx,fs,true);textAt(ctx,'รวม',(xs[0]+xs[2])/2,y+rh/2+fs*0.36,'center');textAt(ctx,String(total),xs[2]+cw[2]/2,y+rh/2+fs*0.36,'center');y+=rh;
     // สรุปคะแนน
-    y+=16;font(ctx,12,true);textAt(ctx,'สรุปคะแนน',x0,y);y+=6;
-    const heads=[['เวลาที่เหลือ'],['คะแนนโบนัส','เวลา'],['คะแนนที่ได้'],['คะแนนรวม','ทั้งหมด'],['อันดับที่']],sw=colW/5,h1=30,h2=24;
-    ctx.lineWidth=0.7;for(let k=0;k<5;k++){ctx.strokeRect(x0+k*sw,y,sw,h1);ctx.strokeRect(x0+k*sw,y+h1,sw,h2)}
-    font(ctx,10.5,true);heads.forEach((h,k)=>h.forEach((t,j)=>textAt(ctx,t,x0+k*sw+sw/2,y+(h.length===1?h1/2+4:11+j*12),'center')));
-    y+=h1+h2+12;
+    y+=30;font(ctx,15,true);textAt(ctx,'สรุปคะแนน',x0,y);y+=10;
+    const heads=[['เวลาที่เหลือ'],['คะแนนโบนัส','เวลา'],['คะแนนที่ได้'],['คะแนนรวม','ทั้งหมด'],['อันดับที่']],sw=colW/5,h1=42,h2=40;
+    ctx.lineWidth=0.8;for(let k=0;k<5;k++){ctx.strokeRect(x0+k*sw,y,sw,h1);ctx.strokeRect(x0+k*sw,y+h1,sw,h2)}
+    font(ctx,13,true);heads.forEach((h,k)=>h.forEach((t,j)=>textAt(ctx,t,x0+k*sw+sw/2,y+(h.length===1?h1/2+5:17+j*16),'center')));
+    y+=h1+h2+28;
     // ลงชื่อ
-    const bh=46;ctx.strokeRect(x0,y,colW/2,bh);ctx.strokeRect(x0+colW/2,y,colW/2,bh);
-    font(ctx,11,false);
+    const bh=64;ctx.strokeRect(x0,y,colW/2,bh);ctx.strokeRect(x0+colW/2,y,colW/2,bh);
     for(const [k,role] of [[0,'ผู้ตรวจ'],[1,'ผู้ทาน']]){
       const bx=x0+k*colW/2,c=bx+colW/4;
-      textAt(ctx,'ลงชื่อ',bx+12,y+18);dotted(ctx,bx+12+ctx.measureText('ลงชื่อ').width+3,bx+colW/2-12,y+19);
-      font(ctx,11,true);textAt(ctx,role,c,y+36,'center');font(ctx,11,false);
+      font(ctx,13.5,false);textAt(ctx,'ลงชื่อ',bx+18,y+26);dotted(ctx,bx+18+ctx.measureText('ลงชื่อ').width+4,bx+colW/2-18,y+27);
+      font(ctx,13.5,true);textAt(ctx,role,c,y+50,'center');
     }
     footer(ctx,st,W,H,'ข้อสอบ');
   }};
 }
+
 function puzzlePage(st,pair,startIdx){
   return {orient:'l',draw(ctx,W,H){
     const M=40,gap=40,colW=(W-2*M-gap)/2;
@@ -1144,7 +1142,7 @@ function renderForm(){
     ?'รอบชิงชนะเลิศ: คะแนนเต็มของแต่ละข้อ = จำนวนช่องว่าง (นับตามช่องที่ตอบถูก)'
     :'รอบคัดเลือก: ผิดแม้ 1 ช่อง ข้อนั้นไม่ได้คะแนน (กำหนดคะแนนเต็มในช่องคะแนนของแต่ละข้อ)';
   $('presetNote').textContent=edu?'โหมดแข่งขัน EduPLOYS (ซูโดกุโปร) — มี 30 รูปแบบตามกติกา ใช้คำชี้แจงและเกณฑ์ตามเอกสารการแข่งขัน'
-    :state.style==='hs'?'งานศิลปหัตถกรรมนักเรียน ระดับมัธยมศึกษา — ใช้ได้ทั้ง ม.ต้น และ ม.ปลาย (เกณฑ์เดียวกัน) แก้ระดับชั้นได้ที่หัวเรื่องบรรทัดที่ 2 · หน้าปกเป็นแบบบันทึกคะแนนแนวนอน'
+    :state.style==='hs'?'งานศิลปหัตถกรรมนักเรียน ระดับมัธยมศึกษา — ใช้ได้ทั้ง ม.ต้น และ ม.ปลาย (เกณฑ์เดียวกัน) แก้ระดับชั้นได้ที่หัวเรื่องบรรทัดที่ 2 · หน้าปกเป็นแบบบันทึกคะแนน'
     :'งานศิลปหัตถกรรมนักเรียน ระดับประถมศึกษา (ตาราง 6x6 และ 9x9)';
   document.querySelectorAll('#presetSeg button').forEach(b=>b.classList.toggle('on',b.dataset.p===state.preset));
   document.querySelectorAll('#diffSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===state.diff));

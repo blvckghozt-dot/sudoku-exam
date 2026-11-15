@@ -4,11 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SUDOKU RENMA · 数独練磨</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='6' fill='%23b8432f'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle' fill='white' font-family='serif' font-weight='bold'%3E%E7%B7%B4%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#b8432f">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SUDOKU RENMA">
+<meta property="og:url" content="https://sudokurenma.pages.dev/">
+<meta property="og:title" content="SUDOKU RENMA · 数独練磨 — เล่นซูโดกุ ปริศนาประจำวัน และสร้างข้อสอบฟรี">
+<meta property="og:description" content="ซูโดกุ 20 รูปแบบ เล่นบนเว็บได้ทันที มีปริศนาประจำวันพร้อมตารางอันดับ และสร้างชุดข้อสอบตามแบบฟอร์มศิลปหัตถกรรม/EduPLOYS พร้อมเฉลย PDF">
+<meta property="og:image" content="https://sudokurenma.pages.dev/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="th_TH">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://sudokurenma.pages.dev/og-cover.png">
 <meta name="description" content="SUDOKU RENMA — เล่นซูโดกุ 20 รูปแบบบนเว็บ พร้อมระบบคำใบ้ และสร้างชุดข้อสอบซูโดกุตามแบบฟอร์มการแข่งขัน บันทึกเป็น PDF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&display=swap&text=SUDOKURENMA%20%E6%95%B0%E7%8B%AC%E7%B7%B4%E7%A3%A8%E9%81%8A%E4%BD%9C%E8%A8%98%E9%8C%B2%E6%AD%A3%E8%A7%A3" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&display=swap&text=SUDOKURENMA%20%E6%95%B0%E7%8B%AC%E7%B7%B4%E7%A3%A8%E9%81%8A%E4%BD%9C%E8%A8%98%E9%8C%B2%E6%AD%A3%E8%A7%A3%E4%BB%8A%E6%97%A5%E7%95%AA%E4%BB%98%E5%85%B1%E6%9C%890123456789%3A" rel="stylesheet">
 <style>
   :root{
     --washi:#f4f1ea; --paper:#fffdf9; --sumi:#1d1c1a; --ink2:#5d5951; --mute:#8b867c; --line:#e2dccf; --line2:#cfc8b8;
@@ -130,6 +143,25 @@
   .solved-banner.on{display:block}
   .solved-banner b{font-family:var(--mincho);font-size:18px}
 
+  .modeseg{margin-bottom:14px}
+  .modeseg button{padding:9px 4px;font-size:14px}
+  .daily-date{font-family:var(--mincho);font-weight:800;font-size:20px;letter-spacing:.04em}
+  .lb{width:100%;border-collapse:collapse;font-size:13.5px}
+  .lb td{padding:6px 3px;border-bottom:1px solid var(--line)}
+  .lb td.r{width:30px;text-align:center;font-family:var(--mincho);font-weight:800;color:var(--ink2)}
+  .lb tr:nth-child(1) td.r{color:#b8862f} .lb tr:nth-child(2) td.r{color:#8b867c} .lb tr:nth-child(3) td.r{color:#a0643a}
+  .lb td.t{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .lb tr.me td{background:var(--shu-soft)}
+  .lb .lv{font-size:11px;color:var(--mute);margin-left:4px}
+  .share{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+  .share button,.share a{border:1px solid var(--line2);background:#fff;border-radius:3px;padding:8px 2px;font-size:13px;cursor:pointer;color:var(--sumi);text-align:center;text-decoration:none}
+  .share .fb{color:#1877f2} .share .ln{color:#06c755} .share .x{color:#111}
+  .result-big{font-family:var(--mincho);font-weight:800;font-size:34px;letter-spacing:.04em;text-align:center;margin:4px 0}
+  .result-sub{text-align:center;font-size:14px;color:var(--ink2)}
+  .mini-seg{margin:0 0 8px}
+  .mini-seg button{padding:5px 4px;font-size:12.5px}
+  [hidden]{display:none!important}
+
   /* ===== modal ===== */
   .modal{position:fixed;inset:0;background:rgba(29,28,26,.5);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
   .modal.open{display:flex}
@@ -194,7 +226,7 @@
         </div>
         <div id="boardWrap">
           <canvas id="board" tabindex="0" aria-label="กระดานซูโดกุ"></canvas>
-          <div class="pause-cover" id="pauseCover"><div>หยุดเวลาชั่วคราว</div><button class="btn" style="width:auto;padding:8px 22px" id="gResume">เล่นต่อ</button></div>
+          <div class="pause-cover" id="pauseCover"><div id="pauseMsg" style="text-align:center;padding:0 16px">หยุดเวลาชั่วคราว</div><button class="btn" style="width:auto;padding:8px 22px" id="gResume">เล่นต่อ</button></div>
         </div>
         <div class="keypad" id="keypad"></div>
         <div class="tools">
@@ -208,6 +240,40 @@
       </div>
     </div>
     <div class="side">
+      <div class="seg modeseg" id="modeSeg"><button data-m="free" class="on">โหมดอิสระ</button><button data-m="daily">🗓 ปริศนาประจำวัน</button></div>
+      <div id="dailySide" hidden>
+        <div class="block">
+          <h3><span class="kj">今日</span>ปริศนาประจำวัน</h3>
+          <div class="daily-date" id="dDate"></div>
+          <div class="small" id="dType"></div>
+          <div id="dPre">
+            <label for="dName">ชื่อที่จะแสดงในตารางอันดับ</label>
+            <input type="text" id="dName" maxlength="24" placeholder="เช่น ด.ญ.มะลิ ป.6/1" autocomplete="nickname">
+            <button class="btn shu" id="dStart">เริ่มปริศนาวันนี้</button>
+            <div class="small" style="margin-top:8px">ทุกคนได้โจทย์เดียวกัน เปลี่ยนทุกเที่ยงคืน · ไม่มีคำใบ้และเฉลย · เวลาจับจากเซิร์ฟเวอร์ตั้งแต่กดเริ่มจนเติมครบ หยุดเวลาไม่ได้ · ถ้าสลับไปหน้าจออื่น กระดานจะถูกซ่อนและนับจำนวนครั้งที่ออกจากจอ</div>
+          </div>
+          <div id="dPlaying" hidden class="hint-box">กำลังแข่ง — เติมให้ครบทุกช่อง ระบบจะส่งคำตอบให้อัตโนมัติ</div>
+          <div id="dResult" hidden>
+            <div class="result-big" id="dTime">00:00</div>
+            <div class="result-sub" id="dRank"></div>
+            <div class="share" id="dShare">
+              <button id="shNative">แชร์</button>
+              <a class="fb" id="shFb" target="_blank" rel="noopener">Facebook</a>
+              <a class="ln" id="shLine" target="_blank" rel="noopener">LINE</a>
+              <a class="x" id="shX" target="_blank" rel="noopener">X</a>
+              <button id="shCopy">คัดลอกข้อความ</button>
+              <button id="shImg">บันทึกรูปผลงาน</button>
+            </div>
+          </div>
+        </div>
+        <div class="block">
+          <h3><span class="kj">番付</span>ตารางอันดับ</h3>
+          <div class="seg mini-seg" id="dBoardDay"><button data-d="today" class="on">วันนี้</button><button data-d="yday">เมื่อวาน</button></div>
+          <div class="hist" id="dBoard" style="max-height:420px"></div>
+          <button class="btn ghost" id="dRefresh" style="font-size:13px;padding:7px">รีเฟรชอันดับ</button>
+        </div>
+      </div>
+      <div id="freeSide">
       <div class="block">
         <h3><span class="kj">遊</span>เลือกโหมดเกม</h3>
         <label>รูปแบบ</label><select id="pType"></select>
@@ -231,6 +297,7 @@
         <div class="stats" id="stats"></div>
         <div class="hist" id="hist"></div>
         <button class="btn ghost" id="histClear" style="font-size:13px;padding:7px">ล้างประวัติ</button>
+      </div>
       </div>
       <div class="credit" style="margin-top:6px">
         <div class="credit-label">พัฒนาโดย</div>
@@ -735,6 +802,12 @@ function generatePuzzle(type,N,diff,seed,boxMode){
   return {type,rule,sym:T.sym,N,orient,model,givens:giv,sol,marks,clues,blanks:n-clues};
 }
 
+/* ================== ปริศนาประจำวัน (ใช้ร่วมกับเซิร์ฟเวอร์) ==================
+   วันละ 1 กระดาน ตามเวลาประเทศไทย เปลี่ยนรูปแบบตามวันในสัปดาห์ (อา–ส) */
+const DAILY_ROT=['killer','classic','diagonal','jigsaw','evenodd','consecutive','windoku'];
+function bangkokDay(ms){return new Date((ms??Date.now())+7*3600e3).toISOString().slice(0,10)}
+function dailyCfg(day){const wd=new Date(day+'T00:00:00Z').getUTCDay();return {type:DAILY_ROT[wd],size:9,diff:'medium',box:'h',seed:'daily-'+day}}
+
 /* ================== วาดหน้า ================== */
 const FONT="'Sarabun','TH SarabunPSK','TH Sarabun New','Leelawadee UI','Loma','Tahoma',sans-serif";
 const PAPER={A4:[595.28,841.89],Letter:[612,792]};
@@ -896,6 +969,7 @@ function drawGrid(ctx,P,x,y,S,mode,opt){ // x,y = มุมซ้ายบนข
 function itemPoints(st,i,P){return (st.style==='edu'&&st.round==='final'&&P)?P.blanks:(+st.items[i].points||0)}
 function footer(ctx,st,W,H,label){
   ctx.save();font(ctx,9,false);ctx.fillStyle='#777';
+  textAt(ctx,'SUDOKU RENMA · sudokurenma.pages.dev',28,H-16,'left');
   textAt(ctx,`รหัสชุด ${st.seed}${label?' · '+label:''}`,W-28,H-16,'right');
   ctx.restore();
 }
@@ -1288,7 +1362,7 @@ window.__test={generatePuzzle,solve,buildModel,buildPDFBlob,get state(){return s
 /* ================== เมนู 1: เล่นเกม ================== */
 const PLAY_KEY='renmaGame',HIST_KEY='renmaHistory',PREF_KEY='renmaPlayPref';
 const DIFF_TH={easy:'ง่าย',medium:'ปานกลาง',hard:'ยาก'};
-const G={P:null,cfg:null,val:null,notes:null,wrong:null,sel:-1,noteMode:false,undo:[],secs:0,paused:false,done:false,revealed:false,hints:0,hint:{level:0,cell:-1},L:null};
+const G={mode:'free',P:null,cfg:null,val:null,notes:null,wrong:null,sel:-1,noteMode:false,undo:[],secs:0,paused:false,done:false,revealed:false,hints:0,hint:{level:0,cell:-1},L:null};
 function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 const fmtTime=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
@@ -1337,6 +1411,7 @@ function newGame(){
 }
 function saveGame(){
   if(!G.P)return;
+  if(G.mode==='daily'){saveDaily();return}
   lsSet(PLAY_KEY,{cfg:G.cfg,val:Array.from(G.val),notes:Array.from(G.notes),secs:G.secs,hints:G.hints,done:G.done,revealed:G.revealed});
 }
 $('pNew').onclick=newGame;
@@ -1426,7 +1501,7 @@ function updateKeypadState(){
 }
 
 /* ---------- การป้อนค่า ---------- */
-function editable(){return G.P&&!G.done&&!G.revealed&&!G.paused&&G.sel>=0&&!G.P.givens[G.sel]}
+function editable(){return G.P&&!G.done&&!G.revealed&&!G.paused&&G.sel>=0&&!G.P.givens[G.sel]&&!(G.mode==='daily'&&(!D.run||D.hidden))}
 function pushUndo(i){G.undo.push({i,v:G.val[i],n:G.notes[i]});if(G.undo.length>300)G.undo.shift()}
 function inputValue(v){
   if(!editable())return;const i=G.sel;
@@ -1475,7 +1550,7 @@ $('tNote').onclick=()=>{G.noteMode=!G.noteMode;updateKeypadState()};
 $('tErase').onclick=eraseCell;
 $('tUndo').onclick=undoMove;
 $('tCheck').onclick=()=>{
-  if(!G.P||G.done||G.revealed)return;
+  if(!G.P||G.done||G.revealed||G.mode==='daily')return;
   let k=0;for(let i=0;i<G.P.model.n;i++)if(G.val[i]&&G.val[i]!==G.P.sol[i]){G.wrong[i]=1;k++}
   G.hints++;
   $('hintBox').textContent=k?`มี ${k} ช่องที่ยังไม่ถูกต้อง (ขีดเส้นใต้สีแดง) — การตรวจนับเป็นการใช้คำใบ้ 1 ครั้ง`:'ช่องที่เติมไว้ถูกต้องทั้งหมด เยี่ยมมาก — การตรวจนับเป็นการใช้คำใบ้ 1 ครั้ง';
@@ -1506,7 +1581,7 @@ function updateHintUI(){
   $('pHint').disabled=!G.P||G.done||G.revealed;
 }
 function giveHint(){
-  if(!G.P||G.done||G.revealed)return;
+  if(!G.P||G.done||G.revealed||G.mode==='daily')return;
   if(G.paused)resumeGame();
   const P=G.P,sy=SYMBOLS[P.sym];
   let wrongs=0;for(let i=0;i<P.model.n;i++)if(G.val[i]&&G.val[i]!==P.sol[i]&&!G.wrong[i]){G.wrong[i]=1;wrongs++}
@@ -1533,7 +1608,7 @@ function giveHint(){
 $('pHint').onclick=giveHint;
 let revealArm=0;
 $('pReveal').onclick=()=>{
-  if(!G.P||G.done)return;
+  if(!G.P||G.done||G.mode==='daily')return;
   if(Date.now()-revealArm>3000){revealArm=Date.now();$('pReveal').textContent='กดอีกครั้งเพื่อยืนยันการดูเฉลย';setTimeout(()=>{$('pReveal').textContent='ดูเฉลยทั้งกระดาน'},3000);return}
   revealArm=0;$('pReveal').textContent='ดูเฉลยทั้งกระดาน';
   G.revealed=true;G.done=true;G.sel=-1;
@@ -1546,17 +1621,20 @@ $('pReveal').onclick=()=>{
 function checkSolved(){
   const P=G.P;if(G.done)return;
   for(let i=0;i<P.model.n;i++){if(!P.givens[i]&&G.val[i]!==P.sol[i])return}
+  if(G.mode==='daily'){dailyComplete();return}
   G.done=true;G.sel=-1;addHistory('solved');updateHintUI();updateBanner();drawBoard();saveGame();
 }
 function updateBanner(){
   const b=$('solvedBanner');
+  if(G.mode==='daily'){b.classList.remove('on');return}
   if(G.done&&!G.revealed){b.innerHTML=`<b>正解</b> &nbsp;เยี่ยมมาก! แก้สำเร็จในเวลา ${fmtTime(G.secs)}${G.hints?` · ใช้คำใบ้ ${G.hints} ครั้ง`:' · ไม่ใช้คำใบ้เลย'}`;b.classList.add('on')}
   else b.classList.remove('on');
 }
-function resumeGame(){G.paused=false;$('pauseCover').classList.remove('on');$('gPause').textContent='หยุด';drawBoard()}
-$('gPause').onclick=()=>{if(!G.P||G.done)return;if(G.paused){resumeGame();return}G.paused=true;$('pauseCover').classList.add('on');$('gPause').textContent='เล่นต่อ'};
+function resumeGame(){if(G.mode==='daily'){dailyUnhide();return}G.paused=false;$('pauseCover').classList.remove('on');$('gPause').textContent='หยุด';drawBoard()}
+$('gPause').onclick=()=>{if(!G.P||G.done||G.mode==='daily')return;if(G.paused){resumeGame();return}G.paused=true;$('pauseCover').classList.add('on');$('gPause').textContent='เล่นต่อ'};
 $('gResume').onclick=resumeGame;
 setInterval(()=>{
+  if(G.mode==='daily'){dailyTick();return}
   if(!G.P||G.done||G.paused||!playActive()||document.visibilityState!=='visible')return;
   G.secs++;$('gTimer').textContent=fmtTime(G.secs);if(G.secs%5===0)saveGame();
 },1000);
@@ -1587,29 +1665,242 @@ $('histClear').onclick=()=>{
 /* ---------- สลับเมนู ---------- */
 let examStarted=false;
 function showView(v){
+  if(v==='daily'){v='play';if(G.mode!=='daily')setTimeout(()=>setMode('daily'),0)}
+  if(v!=='play')dailyLeave();
   document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   $('viewPlay').classList.toggle('on',v==='play');$('viewExam').classList.toggle('on',v==='exam');
   if(v==='exam'&&!examStarted){examStarted=true;generate()}
   if(v==='play')requestAnimationFrame(layoutBoard);
-  try{history.replaceState(null,'',v==='exam'?'#exam':'#play')}catch(e){}
+  try{history.replaceState(null,'',v==='exam'?'#exam':G.mode==='daily'?'#daily':'#play')}catch(e){}
 }
 document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>showView(b.dataset.v));
 window.addEventListener('resize',()=>{if(playActive())layoutBoard()});
-window.addEventListener('hashchange',()=>showView(location.hash==='#exam'?'exam':'play'));
+window.addEventListener('hashchange',()=>showView(location.hash==='#exam'?'exam':location.hash==='#daily'?'daily':'play'));
 
 /* ---------- เริ่มต้น ---------- */
 (async()=>{
   renderPlayForm();renderHistory();
   await ensureFonts();
   const saved=lsGet(PLAY_KEY,null);
-  showView(location.hash==='#exam'?'exam':'play');
+  const startHash=location.hash;
+  showView(startHash==='#exam'?'exam':'play');
   try{
     if(saved&&saved.cfg&&TYPES[saved.cfg.type])startGame(saved.cfg,saved);
     else startGame({type:pref.type,size:pref.size,diff:pref.diff,box:pref.box,seed:randomSeed()});
   }catch(e){console.error(e)}
   $('gTimer').textContent=fmtTime(G.secs);renderHistory();
+  if(startHash==='#daily')setMode('daily');
 })();
-window.__play=G;
+
+/* ================== ปริศนาประจำวัน + ตารางอันดับ ================== */
+const SITE_URL='https://sudokurenma.pages.dev/';
+const API='/api/daily/';
+const DAILY_KEY='renmaDaily',NAME_KEY='renmaName';
+const D={day:null,run:null,hidden:false,leaves:0,startLocal:0,done:false,secs:0,rank:null,players:null,offline:false,err:null,name:'',boardDay:'today'};
+let freeSnapshot=null;
+const TH_MONTH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_WD=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const thaiDate=day=>{const d=new Date(day+'T00:00:00Z');return `วัน${TH_WD[d.getUTCDay()]}ที่ ${d.getUTCDate()} ${TH_MONTH[d.getUTCMonth()]} ${d.getUTCFullYear()+543}`};
+const shortThai=day=>{const d=new Date(day+'T00:00:00Z');return `${d.getUTCDate()} ${TH_MONTH[d.getUTCMonth()]} ${String(d.getUTCFullYear()+543).slice(2)}`};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const siteUrl=()=>/^https?:$/.test(location.protocol)?location.origin+'/':SITE_URL;
+
+async function api(path,body){
+  const r=await fetch(API+path,body?{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}:{cache:'no-store'});
+  let j=null;try{j=await r.json()}catch(e){}
+  if(!r.ok||!j)throw Object.assign(new Error((j&&j.message)||('HTTP '+r.status)),{code:j&&j.error,status:r.status});
+  return j;
+}
+function saveDaily(){
+  if(!G.P||!D.day)return;
+  lsSet(DAILY_KEY,{day:D.day,run:D.run,val:Array.from(G.val),notes:Array.from(G.notes),leaves:D.leaves,startLocal:D.startLocal,done:D.done,secs:D.secs,rank:D.rank,players:D.players,offline:D.offline,name:D.name});
+}
+function showCover(msg,btn){$('pauseMsg').innerHTML=msg;$('gResume').style.display=btn?'':'none';$('gResume').textContent=btn||'';$('pauseCover').classList.add('on')}
+function hideCover(){$('pauseCover').classList.remove('on')}
+
+function setMode(m){
+  if(m===G.mode)return;
+  if(m==='daily'){
+    if(G.P){saveGame();freeSnapshot={cfg:G.cfg,val:Array.from(G.val),notes:Array.from(G.notes),secs:G.secs,hints:G.hints,done:G.done,revealed:G.revealed}}
+    G.mode='daily';enterDaily();
+  }else{
+    dailyLeave();saveDaily();
+    G.mode='free';hideCover();D.hidden=false;
+    $('pauseMsg').textContent='หยุดเวลาชั่วคราว';$('gResume').style.display='';$('gResume').textContent='เล่นต่อ';
+    const sv=freeSnapshot||lsGet(PLAY_KEY,null);
+    try{if(sv&&sv.cfg&&TYPES[sv.cfg.type])startGame(sv.cfg,sv);else newGame()}catch(e){console.error(e)}
+    $('gTimer').textContent=fmtTime(G.secs);
+  }
+  document.querySelectorAll('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===G.mode));
+  $('dailySide').hidden=G.mode!=='daily';$('freeSide').hidden=G.mode==='daily';
+  $('tCheck').style.visibility=G.mode==='daily'?'hidden':'';
+  $('gPause').style.display=G.mode==='daily'?'none':'';
+  try{history.replaceState(null,'',G.mode==='daily'?'#daily':'#play')}catch(e){}
+}
+document.querySelectorAll('#modeSeg button').forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+
+function enterDaily(){
+  const day=bangkokDay();D.day=day;const c=dailyCfg(day);
+  const P=generatePuzzle(c.type,c.size,c.diff,hashStr('renma-daily|'+day),'h');
+  const n=P.model.n;
+  Object.assign(G,{P,cfg:c,val:new Int8Array(n),notes:new Int16Array(n),wrong:new Uint8Array(n),sel:-1,undo:[],secs:0,paused:false,done:false,revealed:false,hints:0,hint:{level:0,cell:-1}});
+  Object.assign(D,{run:null,hidden:false,leaves:0,startLocal:0,done:false,secs:0,rank:null,players:null,offline:false,err:null});
+  const sv=lsGet(DAILY_KEY,null);
+  if(sv&&sv.day===day){
+    if(sv.val&&sv.val.length===n)G.val=Int8Array.from(sv.val);
+    if(sv.notes&&sv.notes.length===n)G.notes=Int16Array.from(sv.notes);
+    Object.assign(D,{run:sv.run||null,leaves:sv.leaves||0,startLocal:sv.startLocal||0,done:!!sv.done,secs:sv.secs||0,rank:sv.rank??null,players:sv.players??null,offline:!!sv.offline,name:sv.name||''});
+    G.done=D.done;
+  }
+  D.name=D.name||lsGet(NAME_KEY,'')||'';
+  $('dName').value=D.name;
+  $('gTitle').textContent='ปริศนาประจำวัน · '+modeLabel(c);
+  $('gMeta').textContent=shortThai(day);
+  $('dDate').textContent=thaiDate(day);
+  $('dType').textContent=`${modeLabel(c)} · ระดับปานกลาง · ทุกคนได้โจทย์เดียวกัน`;
+  $('gRule').textContent=instruction(c.type,c.size,'edu','h');
+  $('hintBox').textContent='';
+  buildKeypad();layoutBoard();
+  if(D.run&&!D.done){D.hidden=true;showCover('กลับมาเล่นต่อได้เลย<br>เวลายังเดินอยู่ตั้งแต่กดเริ่ม','เล่นต่อ')}
+  else if(!D.run)showCover('กด “เริ่มปริศนาวันนี้”<br>เพื่อเปิดโจทย์และเริ่มจับเวลา',null);
+  else hideCover();
+  updateDailyUI();dailyTick();loadBoard();
+}
+function dailyUnhide(){if(!D.run||D.done)return;D.hidden=false;hideCover();drawBoard();$('board').focus({preventScroll:true})}
+function dailyLeave(){
+  if(G.mode!=='daily'||!D.run||D.done||D.hidden)return;
+  D.hidden=true;D.leaves++;saveDaily();
+  showCover(`ตรวจพบการออกจากหน้าจอ (ครั้งที่ ${D.leaves})<br>ซ่อนกระดานไว้ — เวลายังเดินต่อ`,'กลับมาเล่น');
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')dailyLeave()});
+window.addEventListener('blur',dailyLeave);
+
+$('dStart').onclick=async()=>{
+  const name=$('dName').value.trim().replace(/\s+/g,' ');
+  const msg=$('dPlaying');
+  if(!name){msg.hidden=false;msg.textContent='กรุณาใส่ชื่อก่อนเริ่ม';$('dName').focus();return}
+  D.name=name;lsSet(NAME_KEY,name);
+  $('dStart').disabled=true;$('dStart').textContent='กำลังเริ่ม …';
+  try{const r=await api('start',{name});D.run=r.id;D.offline=false}
+  catch(e){
+    if(e.code==='limit'||e.code==='name'){msg.hidden=false;msg.textContent=e.message;$('dStart').disabled=false;$('dStart').textContent='เริ่มปริศนาวันนี้';return}
+    D.run='local-'+Date.now();D.offline=true;
+  }
+  D.startLocal=Date.now();D.leaves=0;D.hidden=false;G.val.fill(0);G.notes.fill(0);
+  hideCover();updateDailyUI();saveDaily();drawBoard();$('board').focus({preventScroll:true});
+  $('dStart').disabled=false;$('dStart').textContent='เริ่มปริศนาวันนี้';
+};
+
+function dailyTick(){
+  if(G.mode!=='daily')return;
+  if(D.day&&bangkokDay()!==D.day&&!(D.run&&!D.done)){enterDaily();return}
+  if(!D.run){$('gTimer').textContent='00:00';return}
+  if(D.done){$('gTimer').textContent=fmtTime(D.secs);return}
+  const s=Math.max(0,Math.floor((Date.now()-D.startLocal)/1000));G.secs=s;$('gTimer').textContent=fmtTime(s);
+  if(s%10===0)saveDaily();
+}
+async function dailyComplete(){
+  G.done=true;D.done=true;G.sel=-1;D.hidden=false;hideCover();
+  D.secs=Math.max(0,Math.floor((Date.now()-D.startLocal)/1000));
+  const grid=Array.from({length:G.P.model.n},(_,i)=>G.P.givens[i]||G.val[i]).join('');
+  updateDailyUI('sending');drawBoard();saveDaily();
+  if(!D.offline){
+    try{const r=await api('finish',{id:D.run,grid,leaves:D.leaves});D.secs=r.secs;D.rank=r.rank??null;D.players=r.players??null;D.err=null}
+    catch(e){D.err=e.message}
+  }
+  G.secs=D.secs;G.hints=0;addHistory('solved');
+  saveDaily();updateDailyUI();loadBoard();
+}
+function shareText(){
+  const c=dailyCfg(D.day);
+  return `🧩 SUDOKU RENMA · ปริศนาประจำวัน ${shortThai(D.day)}\n${modeLabel(c)} — ${D.name||'ฉัน'} ทำได้ในเวลา ${fmtTime(D.secs)} ⏱${D.rank?` อันดับ ${D.rank} จาก ${D.players} คน`:''}\nมาลองแข่งกันได้ที่ ${siteUrl()}#daily`;
+}
+function updateDailyUI(state){
+  $('dPre').hidden=!!D.run;
+  $('dPlaying').hidden=!(D.run&&!D.done);
+  if(D.run&&!D.done)$('dPlaying').textContent=D.offline
+    ?'กำลังเล่น (ระบบอันดับยังไม่พร้อม — ผลจะบันทึกเฉพาะในเครื่องนี้)'
+    :'กำลังแข่ง — เติมให้ครบทุกช่อง ระบบจะส่งคำตอบให้อัตโนมัติ';
+  $('dResult').hidden=!D.done;
+  if(!D.done)return;
+  $('dTime').textContent=fmtTime(D.secs);
+  let sub;
+  if(state==='sending')sub='กำลังส่งผล …';
+  else if(D.offline)sub=`${esc(D.name)} · บันทึกเฉพาะในเครื่องนี้ (ระบบอันดับยังไม่เปิด)`;
+  else if(D.err)sub=`ส่งผลไม่สำเร็จ: ${esc(D.err)}`;
+  else sub=`<b>อันดับที่ ${D.rank} จาก ${D.players} คน</b><br>${esc(D.name)}${D.leaves?` · ออกจากจอ ${D.leaves} ครั้ง`:''}`;
+  $('dRank').innerHTML=sub;
+  const t=shareText(),u=siteUrl();
+  $('shFb').href='https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(u);
+  $('shLine').href='https://line.me/R/share?text='+encodeURIComponent(t);
+  $('shX').href='https://twitter.com/intent/tweet?text='+encodeURIComponent(t);
+  $('shNative').style.display=navigator.share?'':'none';
+}
+$('shCopy').onclick=async()=>{
+  const t=shareText();
+  try{await navigator.clipboard.writeText(t)}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(_){}ta.remove()}
+  $('shCopy').textContent='คัดลอกแล้ว ✓';setTimeout(()=>$('shCopy').textContent='คัดลอกข้อความ',1800);
+};
+$('shNative').onclick=async()=>{
+  const text=shareText();
+  try{
+    const blob=await resultCardBlob();const file=new File([blob],`sudoku-renma-${D.day}.png`,{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({files:[file],text,title:'SUDOKU RENMA'});
+    else await navigator.share({text,title:'SUDOKU RENMA',url:siteUrl()});
+  }catch(e){}
+};
+$('shImg').onclick=async()=>{
+  const blob=await resultCardBlob();const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`sudoku-renma-${D.day}.png`;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),30000);
+};
+
+/* รูปผลงานสำหรับแชร์ (1080×1350) — แสดงเฉพาะโจทย์ ไม่เปิดเผยเฉลย */
+async function resultCardBlob(){
+  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d'),MIN="'Shippori Mincho','Noto Serif CJK JP','Noto Serif JP','Yu Mincho',serif";
+  ctx.fillStyle='#f4f1ea';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(0,0,0,.035)';for(let y=0;y<H;y+=18)for(let x=0;x<W;x+=18){ctx.beginPath();ctx.arc(x+1,y+1,1.2,0,7);ctx.fill()}
+  ctx.strokeStyle='#d9d2c2';ctx.lineWidth=2;ctx.strokeRect(36,36,W-72,H-72);
+  ctx.fillStyle='#b8432f';ctx.fillRect(84,84,104,104);
+  ctx.fillStyle='#fff';ctx.font=`800 70px ${MIN}`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('練',136,140);
+  ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle='#1d1c1a';
+  ctx.font=`800 54px ${MIN}`;ctx.letterSpacing='10px';ctx.fillText('SUDOKU RENMA',216,138);ctx.letterSpacing='0px';
+  ctx.fillStyle='#8b867c';ctx.font=`600 26px ${MIN}`;ctx.fillText('数独練磨  ·  ',218,180);
+  ctx.font=`600 28px ${FONT}`;ctx.fillText('ปริศนาประจำวัน',218+ctx.measureText('数独練磨  ·  ').width+6,180);
+  // กระดาน (เฉพาะโจทย์)
+  const ext=gridExtent(G.P),S=Math.floor(560/Math.max(ext.w,ext.h)),bw=S*ext.w,bx=(W-bw)/2,by=250;
+  ctx.fillStyle='#fffdf9';ctx.fillRect(bx-18,by-18,bw+36,S*ext.h+36);
+  drawGrid(ctx,G.P,bx+ext.pad*S,by+ext.pad*S,S,'puzzle');
+  let y=by+S*ext.h+90;
+  ctx.textAlign='center';ctx.fillStyle='#5d5951';ctx.font=`600 34px ${FONT}`;
+  ctx.fillText(`${thaiDate(D.day)} · ${modeLabel(dailyCfg(D.day))}`,W/2,y);y+=120;
+  ctx.fillStyle='#1d1c1a';ctx.font=`800 132px ${MIN}`;ctx.fillText(fmtTime(D.secs),W/2,y);y+=70;
+  ctx.font=`700 40px ${FONT}`;ctx.fillStyle='#b8432f';
+  ctx.fillText(D.rank?`อันดับที่ ${D.rank} จาก ${D.players} คน`:'แก้ปริศนาสำเร็จ!',W/2,y);y+=56;
+  ctx.font=`600 34px ${FONT}`;ctx.fillStyle='#1d1c1a';if(D.name)ctx.fillText(D.name,W/2,y);
+  ctx.font=`600 30px ${FONT}`;ctx.fillStyle='#24395a';ctx.fillText(`มาแข่งกันที่ ${siteUrl().replace(/^https?:\/\//,'').replace(/\/$/,'')}`,W/2,H-80);
+  return await new Promise(r=>cv.toBlob(r,'image/png'));
+}
+
+/* ตารางอันดับ */
+document.querySelectorAll('#dBoardDay button').forEach(b=>b.onclick=()=>{D.boardDay=b.dataset.d;document.querySelectorAll('#dBoardDay button').forEach(x=>x.classList.toggle('on',x===b));loadBoard()});
+$('dRefresh').onclick=()=>loadBoard();
+async function loadBoard(){
+  const box=$('dBoard'),day=D.boardDay==='yday'?bangkokDay(Date.now()-864e5):bangkokDay();
+  box.innerHTML='<div class="small">กำลังโหลด …</div>';
+  try{
+    const r=await api('board?day='+day);
+    if(!r.top||!r.top.length){box.innerHTML=`<div class="small">${D.boardDay==='yday'?'เมื่อวานยังไม่มีผู้ส่งผล':'ยังไม่มีใครส่งผลวันนี้ — มาเป็นคนแรกกัน!'}</div>`;return}
+    box.innerHTML=`<div class="small" style="margin-bottom:4px">${shortThai(r.day)} · ผู้เล่น ${r.players} คน</div><table class="lb">`+
+      r.top.map((x,i)=>`<tr class="${x.name===D.name?'me':''}"><td class="r">${i+1}</td><td>${esc(x.name)}${x.leaves?`<span class="lv" title="ออกจากหน้าจอระหว่างเล่น">👁 ${x.leaves}</span>`:''}</td><td class="t">${fmtTime(x.secs)}</td></tr>`).join('')+'</table>';
+  }catch(e){
+    box.innerHTML=`<div class="small">ตารางอันดับยังใช้งานไม่ได้ในตอนนี้${e.code==='no_db'?' (ผู้ดูแลยังไม่ได้เปิดฐานข้อมูล)':''}</div>`;
+  }
+}
+setInterval(()=>{if(G.mode==='daily'&&playActive()&&document.visibilityState==='visible')loadBoard()},60000);
+
+window.__play=G;window.__daily=D;
 </script>
 </body>
 </html>

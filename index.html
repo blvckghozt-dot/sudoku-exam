@@ -1390,8 +1390,8 @@ function startGame(cfg,saved){
   const n=P.model.n;
   Object.assign(G,{P,cfg,val:new Int8Array(n),notes:new Int16Array(n),wrong:new Uint8Array(n),sel:-1,undo:[],secs:0,paused:false,done:false,revealed:false,hints:0,hint:{level:0,cell:-1}});
   if(saved){
-    if(saved.val)G.val=Int8Array.from(saved.val);
-    if(saved.notes)G.notes=Int16Array.from(saved.notes);
+    if(saved.val&&saved.val.length===n)G.val=Int8Array.from(saved.val);
+    if(saved.notes&&saved.notes.length===n)G.notes=Int16Array.from(saved.notes);
     Object.assign(G,{secs:saved.secs||0,hints:saved.hints||0,done:!!saved.done,revealed:!!saved.revealed});
   }
   $('gTitle').textContent=modeLabel(cfg);

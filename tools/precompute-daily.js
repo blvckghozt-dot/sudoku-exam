@@ -9,7 +9,7 @@ const out={};const t0=Date.now();
 for(let d=0;d<days;d++){
   const day=new Date(start.getTime()+d*864e5).toISOString().slice(0,10);
   const c=E.dailyCfg(day);
-  const P=E.generatePuzzle(c.type,c.size,c.diff,E.hashStr('renma-daily|'+day),'h');
+  const P=E.generatePuzzle(c.type,c.size,c.diff,E.hashStr('renma-daily|'+day),'h');if(process.env.SHOW)console.error(day,c.type,c.size,P.clues);
   const sol=Array.from(P.sol).join('');
   out[day]=crypto.createHash('sha256').update(day+'|'+sol).digest('hex').slice(0,40);
 }

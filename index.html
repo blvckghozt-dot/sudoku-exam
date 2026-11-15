@@ -803,10 +803,18 @@ function generatePuzzle(type,N,diff,seed,boxMode){
 }
 
 /* ================== ปริศนาประจำวัน (ใช้ร่วมกับเซิร์ฟเวอร์) ==================
-   วันละ 1 กระดาน ตามเวลาประเทศไทย เปลี่ยนรูปแบบตามวันในสัปดาห์ (อา–ส) */
-const DAILY_ROT=['killer','classic','diagonal','jigsaw','evenodd','consecutive','windoku'];
+   วันละ 1 กระดาน ระดับง่าย ตามเวลาประเทศไทย
+   สุ่มรูปแบบแบบวนครบทุกโหมด: ทุก 20 วันจะได้ครบทั้ง 20 รูปแบบ (ลำดับสุ่มใหม่ทุกรอบ) */
 function bangkokDay(ms){return new Date((ms??Date.now())+7*3600e3).toISOString().slice(0,10)}
-function dailyCfg(day){const wd=new Date(day+'T00:00:00Z').getUTCDay();return {type:DAILY_ROT[wd],size:9,diff:'medium',box:'h',seed:'daily-'+day}}
+function dailyCfg(day){
+  const keys=Object.keys(TYPES),L=keys.length;
+  const idx=Math.round((Date.parse(day+'T00:00:00Z')-Date.parse('2026-11-01T00:00:00Z'))/864e5);
+  const cyc=Math.floor(idx/L),pos=((idx%L)+L)%L;
+  const order=shuffle(keys.slice(),mulberry32(hashStr('renma-cycle|'+cyc)));
+  const type=order[pos],sizes=TYPES[type].sizes.filter(x=>x>=8);
+  const size=sizes[hashStr('renma-size|'+day)%sizes.length];
+  return {type,size,diff:'easy',box:'h',seed:'daily-'+day};
+}
 
 /* ================== วาดหน้า ================== */
 const FONT="'Sarabun','TH SarabunPSK','TH Sarabun New','Leelawadee UI','Loma','Tahoma',sans-serif";
@@ -1713,7 +1721,7 @@ async function api(path,body){
 }
 function saveDaily(){
   if(!G.P||!D.day)return;
-  lsSet(DAILY_KEY,{day:D.day,run:D.run,val:Array.from(G.val),notes:Array.from(G.notes),leaves:D.leaves,startLocal:D.startLocal,done:D.done,secs:D.secs,rank:D.rank,players:D.players,offline:D.offline,name:D.name});
+  lsSet(DAILY_KEY,{day:D.day,sig:G.cfg.type+'|'+G.cfg.size+'|'+G.cfg.diff,run:D.run,val:Array.from(G.val),notes:Array.from(G.notes),leaves:D.leaves,startLocal:D.startLocal,done:D.done,secs:D.secs,rank:D.rank,players:D.players,offline:D.offline,name:D.name});
 }
 function showCover(msg,btn){$('pauseMsg').innerHTML=msg;$('gResume').style.display=btn?'':'none';$('gResume').textContent=btn||'';$('pauseCover').classList.add('on')}
 function hideCover(){$('pauseCover').classList.remove('on')}
@@ -1742,11 +1750,11 @@ document.querySelectorAll('#modeSeg button').forEach(b=>b.onclick=()=>setMode(b.
 function enterDaily(){
   const day=bangkokDay();D.day=day;const c=dailyCfg(day);
   const P=generatePuzzle(c.type,c.size,c.diff,hashStr('renma-daily|'+day),'h');
-  const n=P.model.n;
+  const n=P.model.n,sig=c.type+'|'+c.size+'|'+c.diff;
   Object.assign(G,{P,cfg:c,val:new Int8Array(n),notes:new Int16Array(n),wrong:new Uint8Array(n),sel:-1,undo:[],secs:0,paused:false,done:false,revealed:false,hints:0,hint:{level:0,cell:-1}});
   Object.assign(D,{run:null,hidden:false,leaves:0,startLocal:0,done:false,secs:0,rank:null,players:null,offline:false,err:null});
   const sv=lsGet(DAILY_KEY,null);
-  if(sv&&sv.day===day){
+  if(sv&&sv.day===day&&sv.sig===sig){
     if(sv.val&&sv.val.length===n)G.val=Int8Array.from(sv.val);
     if(sv.notes&&sv.notes.length===n)G.notes=Int16Array.from(sv.notes);
     Object.assign(D,{run:sv.run||null,leaves:sv.leaves||0,startLocal:sv.startLocal||0,done:!!sv.done,secs:sv.secs||0,rank:sv.rank??null,players:sv.players??null,offline:!!sv.offline,name:sv.name||''});
@@ -1757,7 +1765,7 @@ function enterDaily(){
   $('gTitle').textContent='ปริศนาประจำวัน · '+modeLabel(c);
   $('gMeta').textContent=shortThai(day);
   $('dDate').textContent=thaiDate(day);
-  $('dType').textContent=`${modeLabel(c)} · ระดับปานกลาง · ทุกคนได้โจทย์เดียวกัน`;
+  $('dType').textContent=`${modeLabel(c)} · ระดับ${DIFF_TH[c.diff]} · ทุกคนได้โจทย์เดียวกัน`;
   $('gRule').textContent=instruction(c.type,c.size,'edu','h');
   $('hintBox').textContent='';
   buildKeypad();layoutBoard();

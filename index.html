@@ -31,7 +31,7 @@
   .seg button+button{border-left:1px solid #cfccc4}
   .seg button.on{background:var(--accent);color:#fff}
   .items{display:flex;flex-direction:column;gap:6px}
-  .item{display:grid;grid-template-columns:22px 1fr 64px 52px 28px 28px;gap:4px;align-items:center}
+  .item{display:grid;grid-template-columns:22px minmax(0,1fr) 62px 50px 28px 28px;gap:4px;align-items:center}
   .item .n{font-weight:700;text-align:right;font-size:13px;color:var(--muted)}
   .item select,.item input{padding:5px 4px;font-size:13px}
   .icon{border:1px solid #cfccc4;background:#fff;border-radius:6px;height:30px;cursor:pointer;font-size:14px;line-height:1;padding:0}
@@ -74,7 +74,9 @@
     <div class="seg" id="presetSeg">
       <button data-p="r1">รอบที่ 1 · ประถมศึกษา</button>
       <button data-p="r2">รอบที่ 2 · ม.ต้น</button>
+      <button data-p="edu">EduPLOYS</button>
     </div>
+    <div class="small" id="presetNote" style="margin-top:6px"></div>
     <label>หัวเรื่อง บรรทัดที่ 1</label><input type="text" id="t1">
     <label>หัวเรื่อง บรรทัดที่ 2</label><input type="text" id="t2">
     <label>หัวเรื่อง บรรทัดที่ 3</label><input type="text" id="t3">
@@ -95,13 +97,20 @@
       <button data-d="easy">ง่าย</button><button data-d="medium">ปานกลาง</button><button data-d="hard">ยาก</button>
     </div>
     <div class="row">
+      <div><label>กรอบย่อย 6x6 / 8x8</label>
+        <select id="boxMode"><option value="h">แนวนอน (2x3 / 2x4)</option><option value="v">แนวตั้ง (3x2 / 4x2)</option><option value="random">สุ่มแต่ละข้อ</option></select></div>
+      <div id="roundWrap"><label>รอบการแข่งขัน</label>
+        <select id="round"><option value="qual">รอบคัดเลือก</option><option value="final">รอบชิงชนะเลิศ</option></select></div>
+    </div>
+    <div class="small" id="roundNote" style="margin-top:4px"></div>
+    <div class="row">
       <div><label>ขนาดกระดาษ</label>
         <select id="paper"><option value="A4">A4</option><option value="Letter">Letter</option></select></div>
       <div><label>รหัสชุดข้อสอบ</label><input type="text" id="seed"></div>
     </div>
     <button class="btn ghost" id="newSeed">สุ่มชุดใหม่ทั้งหมด</button>
     <div class="small" style="margin-top:6px">ใช้รหัสชุดเดิม = ได้ข้อสอบชุดเดิมทุกครั้ง</div>
-    <label class="check"><input type="checkbox" id="optCover" checked> หน้าปก (ชื่อ ชั้น โรงเรียน ตารางคะแนน)</label>
+    <label class="check"><input type="checkbox" id="optCover" checked> หน้าปก (ชื่อ โรงเรียน ตารางคะแนน)</label>
     <label class="check"><input type="checkbox" id="optKey" checked> แสดงเฉลยในหน้าตัวอย่าง</label>
   </fieldset>
 
@@ -125,37 +134,85 @@
 <script>
 "use strict";
 /* ================== ข้อมูลประเภทซูโดกุ ================== */
+// rule = กติกาที่ใช้สร้าง/ตรวจ, sym = ชุดสัญลักษณ์
 const TYPES = {
-  classic:    {en:'Classic Sudoku',          th:'Classic (ตัวเลข)',       sizes:[6,9]},
-  alphabet:   {en:'Alphabet Sudoku',         th:'Alphabet (A–I)',          sizes:[6,9]},
-  thai:       {en:'Thai Alphabet Sudoku',    th:'Thai Alphabet (ก–ฌ)',     sizes:[6,9]},
-  diagonal:   {en:'Diagonal Sudoku',         th:'Diagonal (ทแยง)',         sizes:[6,9]},
-  jigsaw:     {en:'Jigsaw Sudoku',           th:'Jigsaw (จิ๊กซอว์)',        sizes:[6,9]},
-  evenodd:    {en:'Even-Odd Sudoku',         th:'Even-Odd (คู่-คี่)',       sizes:[6,9]},
-  consecutive:{en:'Consecutive Sudoku',      th:'Consecutive (เลขเรียง)',   sizes:[6,9]},
-  asterisk:   {en:'Asterisk Sudoku',         th:'Asterisk (ดอกจัน)',       sizes:[9]},
-  diagjigsaw: {en:'Diagonal Jigsaw Sudoku',  th:'Diagonal Jigsaw',         sizes:[6,9]},
-  windoku:    {en:'Windoku Sudoku',          th:'Windoku (หน้าต่าง)',      sizes:[9]},
+  classic:    {rule:'classic',    sym:'num',   en:'Classic',          th:'Classic (ตัวเลข)',         sizes:[6,8,9]},
+  alphabet:   {rule:'classic',    sym:'alpha', en:'Alphabet',         th:'Alphabet (A–I)',            sizes:[6,8,9]},
+  thai:       {rule:'classic',    sym:'thai',  en:'Thai Alphabet',    th:'Thai Alphabet (ก–ฌ)',       sizes:[6,8,9]},
+  diagonal:   {rule:'diagonal',   sym:'num',   en:'Diagonal',         th:'Diagonal (ทแยง)',           sizes:[6,8,9]},
+  jigsaw:     {rule:'jigsaw',     sym:'num',   en:'Jigsaw',           th:'Jigsaw (จิ๊กซอว์)',          sizes:[6,8,9]},
+  asterisk:   {rule:'asterisk',   sym:'num',   en:'Asterisk',         th:'Asterisk (ดอกจัน)',         sizes:[9]},
+  centerdot:  {rule:'centerdot',  sym:'num',   en:'Center Dot',       th:'Center Dot (จุดกลาง)',      sizes:[9]},
+  girandola:  {rule:'girandola',  sym:'num',   en:'Girandola',        th:'Girandola (กังหัน)',        sizes:[9]},
+  evenodd:    {rule:'evenodd',    sym:'num',   en:'Even-Odd',         th:'Even-Odd (คู่-คี่)',         sizes:[6,8,9]},
+  consecutive:{rule:'consecutive',sym:'num',   en:'Consecutive',      th:'Consecutive (เลขเรียง)',     sizes:[6,8,9]},
+  alphadiag:  {rule:'diagonal',   sym:'alpha', en:'Alphabet Diagonal',th:'Alphabet Diagonal',         sizes:[6,8,9]},
+  alphajigsaw:{rule:'jigsaw',     sym:'alpha', en:'Alphabet Jigsaw',  th:'Alphabet Jigsaw',           sizes:[6,8,9]},
+  diagjigsaw: {rule:'diagjigsaw', sym:'num',   en:'Diagonal Jigsaw',  th:'Diagonal Jigsaw',           sizes:[6,8,9]},
+  windoku:    {rule:'windoku',    sym:'num',   en:'Windoku',          th:'Windoku (หน้าต่าง)',        sizes:[9]},
+  killer:     {rule:'killer',     sym:'num',   en:'Killer',           th:'Killer (ผลรวมกรอบประ)',     sizes:[6,8,9]},
+  xv:         {rule:'xv',         sym:'num',   en:'XV',               th:'XV (ผลรวม 10/5)',           sizes:[6,8,9]},
+  rossini:    {rule:'rossini',    sym:'num',   en:'Rossini',          th:'Rossini (ลูกศรรอบตาราง)',    sizes:[9]},
+  greater:    {rule:'greater',    sym:'num',   en:'GreaterThan',      th:'GreaterThan (มากกว่า/น้อยกว่า)', sizes:[6,8,9]},
+  gattai:     {rule:'gattai',     sym:'num',   en:'Gattai Near 2 (Classic+Classic)',  th:'Gattai 2 ตาราง (Classic+Classic)',  sizes:[9]},
+  gattaidiag: {rule:'gattaidiag', sym:'num',   en:'Gattai Near 2 (Classic+Diagonal)', th:'Gattai 2 ตาราง (Classic+Diagonal)', sizes:[9]},
 };
 const SYMBOLS = {
   num:  ['','1','2','3','4','5','6','7','8','9'],
   alpha:['','A','B','C','D','E','F','G','H','I'],
   thai: ['','ก','ข','ค','ง','จ','ฉ','ช','ซ','ฌ'],
 };
-function symSet(type){ return type==='alphabet'?'alpha':type==='thai'?'thai':'num'; }
 
 const PRESETS = {
-  r1:{ style:'r1',
+  r1:{ style:'r1', boxMode:'h',
     t1:'ปริศนาซูโดกุรอบที่ 1', t2:'ระดับชั้นประถมศึกษา', t3:'รอบที่ 1 เวลา 60 นาที', t4:'เฉลยปริศนาซูโดกุรอบที่ 1',
     items:[['classic',6],['alphabet',6],['diagonal',6],['jigsaw',6],['thai',6],['classic',9],['alphabet',9],['diagonal',9],['jigsaw',9],['evenodd',9]] },
-  r2:{ style:'r2',
+  r2:{ style:'r2', boxMode:'h',
     t1:'ปริศนาซูโดกุรอบที่ 2', t2:'ระดับชั้นมัธยมศึกษาตอนต้น', t3:'รอบที่ 2 เวลา 60 นาที', t4:'เฉลยปริศนาซูโดกุรอบที่ 2',
     items:[['classic',9],['diagonal',9],['alphabet',9],['jigsaw',9],['evenodd',9],['consecutive',9],['asterisk',9],['thai',9],['diagjigsaw',9],['windoku',9]] },
+  edu:{ style:'edu', boxMode:'random',
+    t1:'การแข่งขันซูโดกุโปร เกมถอดรหัสปริศนาตัวเลข', t2:'รุ่น ......................', t3:'รอบคัดเลือก เวลา 60 นาที', t4:'เฉลยการแข่งขันซูโดกุโปร',
+    items:[['classic',6],['classic',8],['classic',9],['diagonal',9],['jigsaw',9],['centerdot',9],['evenodd',9],['killer',9],['xv',9],['gattai',9]] },
 };
 
-/* คำชี้แจงตามแบบฟอร์ม */
-function instruction(type, N, style){
-  const box = N===6?'2x3':'3x3', last = N===6?'F':'I';
+function boxDims(N,orient){
+  if(N===9)return [3,3];
+  if(N===6)return orient==='v'?[3,2]:[2,3];
+  if(N===8)return orient==='v'?[4,2]:[2,4];
+  return [N,1];
+}
+function boxText(N,orient){const [a,b]=boxDims(N,orient);return `${a}x${b}`}
+
+/* คำชี้แจงตามกติกา EduPLOYS (ใช้เป็นค่าตั้งต้นของประเภทใหม่ด้วย) */
+function eduInstruction(type,N){
+  const T=TYPES[type],rule=T.rule;
+  const last=SYMBOLS.alpha[N],thL=SYMBOLS.thai.slice(1,N+1).join(' ');
+  const R=T.sym==='alpha'?`ตัวอักษร A-${last}`:T.sym==='thai'?`ตัวอักษร ${thL}`:`ตัวเลข 1-${N}`;
+  const box=N===6?' (กรอบสี่เหลี่ยมย่อยอาจมีทั้ง 2x3 หรือ 3x2)':N===8?' (กรอบสี่เหลี่ยมย่อยอาจมีทั้ง 2x4 หรือ 4x2)':'';
+  const base=`เติม${R} ลงในตาราง โดยให้มี${R} ไม่ซ้ำกันเลย ในแต่ละแถว แต่ละคอลัมน์`;
+  switch(rule){
+    case 'classic': return `${base} และแต่ละกรอบสี่เหลี่ยมย่อย${box}`;
+    case 'diagonal': return `${base} แต่ละกรอบสี่เหลี่ยมย่อย และในแนวเส้นทแยงมุมทั้ง 2 เส้น${box}`;
+    case 'jigsaw': return `${base} และแต่ละกรอบย่อยที่มีรูปร่างแตกต่างกัน`;
+    case 'diagjigsaw': return `${base} แต่ละกรอบย่อยที่มีรูปร่างแตกต่างกัน และในแนวเส้นทแยงมุมทั้ง 2 เส้น`;
+    case 'asterisk': case 'centerdot': case 'girandola': return `${base} แต่ละกรอบสี่เหลี่ยมย่อย และช่องที่แรเงาทั้ง 9 ช่อง`;
+    case 'evenodd': return `${base} และแต่ละกรอบสี่เหลี่ยมย่อย โดยช่องที่แรเงาจะเป็นเพียงเลขคู่เท่านั้น${box}`;
+    case 'consecutive': return `${base} และแต่ละกรอบสี่เหลี่ยมย่อย โดยขีดทึบระหว่างช่อง หมายถึง ตัวเลขระหว่างขีดนั้นจะมีค่ามากกว่าหรือน้อยกว่าอีกตัวอยู่ 1 เช่น 3 อาจติดกันกับ 2 หรือ 4 (แต่ 1 ไม่ถือว่าติดกับ ${N}) หากไม่มีขีดทึบ ตัวเลขจะมีค่าติดกันไม่ได้${box}`;
+    case 'windoku': return `${base} แต่ละกรอบสี่เหลี่ยมย่อย และช่องหน้าต่างที่แรเงา`;
+    case 'killer': return `${base} และแต่ละกรอบสี่เหลี่ยมย่อย โดยตัวเลขในกรอบเส้นประจะต้องรวมกันได้เท่ากับตัวเลขที่มุมซ้ายบนของกรอบเส้นประนั้นๆ (ตัวเลขในกรอบเส้นประเดียวกันห้ามซ้ำกัน)${box}`;
+    case 'xv': return `${base} และแต่ละกรอบสี่เหลี่ยมย่อย โดยช่องที่มีตัว X คั่นกลาง หมายถึง ตัวเลขระหว่างสองช่องนั้นต้องรวมกันได้ 10 และในช่องที่มีตัว V คั่นกลาง หมายถึง ตัวเลขระหว่างสองช่องนั้นต้องรวมกันได้ 5 และหากระหว่างช่องใดที่ไม่มีตัว X หรือ V กำกับอยู่ ตัวเลขระหว่างสองช่องนั้นจะต้องมีผลรวมที่ไม่ใช่ 10 หรือ 5${box}`;
+    case 'rossini': return `${base} และแต่ละกรอบสี่เหลี่ยมย่อย โดยเครื่องหมายลูกศรที่อยู่รอบตาราง หมายถึง ลำดับตัวเลขจะเรียงจากน้อยไปมากตามทิศทางจากหางลูกศรไปหาหัวลูกศร โดยลูกศรจะบอกทิศทางของลำดับตัวเลขในช่อง 3 ช่องที่อยู่ติดกับลูกศรนั้น หากคอลัมน์ใดหรือแถวใดไม่มีลูกศรกำกับแสดงว่าตัวเลขใน 3 ช่องของคอลัมน์หรือแถวนั้นจะไม่เรียงลำดับกัน`;
+    case 'greater': return `${base} และแต่ละกรอบสี่เหลี่ยมย่อย โดยช่องที่มีเครื่องหมายมากกว่า (>) หรือ น้อยกว่า (<) หมายถึง จะต้องเติม${R} ให้สอดคล้องกับเครื่องหมายมากกว่าหรือน้อยกว่าที่ให้มา (ปลายแหลมชี้ไปทางช่องที่มีค่าน้อยกว่า)${box}`;
+    case 'gattai': return `มีตารางใหญ่ 9x9 Classic ซ้อนกัน 2 ตาราง โดยกรอบสี่เหลี่ยมย่อยที่ทับซ้อนกัน จะส่งผลต่อทั้ง 2 ตาราง เติมตัวเลข 1-9 ลงในตาราง โดยให้มีตัวเลข 1-9 ไม่ซ้ำกันเลย ในแต่ละแถว แต่ละคอลัมน์ และแต่ละกรอบสี่เหลี่ยมย่อย`;
+    case 'gattaidiag': return `มีตารางใหญ่ 9x9 Classic (บนซ้าย) และ 9x9 Diagonal (ล่างขวา) ซ้อนกัน โดยกรอบสี่เหลี่ยมย่อยที่ทับซ้อนกัน จะส่งผลต่อทั้ง 2 ตาราง เติมตัวเลข 1-9 ไม่ซ้ำกันเลย ในแต่ละแถว แต่ละคอลัมน์ และแต่ละกรอบสี่เหลี่ยมย่อย และสำหรับตาราง Diagonal ต้องไม่ซ้ำกันในแนวเส้นทแยงมุมทั้ง 2 เส้นด้วย`;
+  }
+  return base;
+}
+
+/* คำชี้แจงตามแบบฟอร์มเดิม รอบที่ 1 / รอบที่ 2 */
+function instruction(type, N, style, orient){
+  if(style==='edu')return eduInstruction(type,N);
+  const box = boxText(N,orient), last = SYMBOLS.alpha[N];
   const thaiL = SYMBOLS.thai.slice(1,N+1).join(', ');
   if(style==='r2'){
     const R = `เติมเลข 1 – ${N} ในแนวตั้ง แนวนอน`;
@@ -171,24 +228,29 @@ function instruction(type, N, style){
       case 'diagjigsaw': return `${R} กรอบพื้นที่ที่มีรูปร่างต่างกัน และแนวทแยงมุม โดยไม่ให้ตัวเลขซ้ำกัน`;
       case 'windoku': return `${R}กรอบสี่เหลี่ยมและกรอบสี่เหลี่ยมที่แรเงา โดยไม่ให้ซ้ำกัน`;
     }
+    return eduInstruction(type,N);
   }
   const R = `ลงในช่องว่างไม่ให้ซ้ำกันในแต่ละแถว แนวตั้ง แนวนอน`;
   switch(type){
-    case 'classic': return N===6?`เติมเลข 1 – 6 ${R} และตารางย่อยขนาด 2x3`:`เติมตัวเลข 1 ถึง 9 ${R} และตารางย่อยขนาด 3x3`;
+    case 'classic': return N===6?`เติมเลข 1 – 6 ${R} และตารางย่อยขนาด ${box}`:`เติมตัวเลข 1 ถึง ${N} ${R} และตารางย่อยขนาด ${box}`;
     case 'alphabet': return `เติมตัวอักษร A ถึง ${last} ${R} และตารางย่อยขนาด ${box}`;
     case 'diagonal': return `เติมตัวเลข 1 ถึง ${N} ${R} ตารางย่อยขนาด ${box} และ แนวทแยงมุมทั้งสองเส้น`;
     case 'jigsaw': return `เติมตัวเลข 1 ถึง ${N} ${R} และตารางย่อยที่ตีกรอบด้วยเส้นสีดำหนา`;
-    case 'thai': return `เติมตัวอักษรภาษาไทย ${thaiL} ไม่ให้ซ้ำกันในแต่ละแถวแนวตั้ง แนวนอน และตารางย่อยขนาด ${N===6?'2 x 3':'3 x 3'}`;
+    case 'thai': return `เติมตัวอักษรภาษาไทย ${thaiL} ไม่ให้ซ้ำกันในแต่ละแถวแนวตั้ง แนวนอน และตารางย่อยขนาด ${box.replace('x',' x ')}`;
     case 'evenodd': return `เติมตัวเลข 1 ถึง ${N} ${R} และตารางย่อยขนาด ${box} โดยที่ช่องที่แรเงาจะต้องเติมเลขคู่เท่านั้น`;
     case 'consecutive': return `เติมตัวเลข 1 ถึง ${N} ${R} และตารางย่อยขนาด ${box} ช่องคู่ที่มีขีดหนาคั่นต้องเป็นเลขเรียงกัน (ต่างกัน 1) ส่วนช่องคู่ที่ไม่มีขีดคั่นห้ามเป็นเลขเรียงกัน`;
     case 'asterisk': return `เติมตัวเลข 1 ถึง 9 ${R} ตารางย่อยขนาด 3x3 และช่องที่แรเงาทั้ง 9 ช่อง`;
     case 'diagjigsaw': return `เติมตัวเลข 1 ถึง ${N} ${R} ตารางย่อยที่ตีกรอบด้วยเส้นสีดำหนา และ แนวทแยงมุมทั้งสองเส้น`;
     case 'windoku': return `เติมตัวเลข 1 ถึง 9 ${R} ตารางย่อยขนาด 3x3 และตารางย่อยที่แรเงาทั้ง 4 กรอบ`;
   }
+  return eduInstruction(type,N);
 }
 function itemTitle(it, style){
-  const t = TYPES[it.type].en;
-  return style==='r1' ? `${it.size}x${it.size} ${t}` : t;
+  const T=TYPES[it.type];
+  if(T.rule==='gattai'||T.rule==='gattaidiag')return T.en;
+  if(style==='edu')return `${it.size}x${it.size} ${T.en}`;
+  if(style==='r1')return `${it.size}x${it.size} ${T.en} Sudoku`;
+  return `${T.en} Sudoku`;
 }
 
 /* ================== สุ่มแบบกำหนดเมล็ด ================== */
@@ -196,52 +258,112 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a
 function hashStr(s){let h=2166136261>>>0;for(let i=0;i<s.length;i++){h=Math.imul(h^s.charCodeAt(i),16777619)}return h>>>0}
 function shuffle(a,rng){for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
-/* ================== โมเดลและตัวแก้ ================== */
-function boxRegions(N){
-  const r=new Int8Array(N*N);
-  for(let i=0;i<N;i++)for(let j=0;j<N;j++) r[i*N+j]= N===9 ? Math.floor(i/3)*3+Math.floor(j/3) : Math.floor(i/2)*2+Math.floor(j/3);
+/* ================== โมเดลตาราง ================== */
+function boxRegions(N,orient){
+  const [br,bc]=boxDims(N,orient),per=N/bc,r=new Int8Array(N*N);
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++)r[i*N+j]=Math.floor(i/br)*per+Math.floor(j/bc);
   return r;
 }
 const ASTERISK=[[1,4],[2,2],[2,6],[4,1],[4,4],[4,7],[6,2],[6,6],[7,4]];
+const CENTERDOT=[[1,1],[1,4],[1,7],[4,1],[4,4],[4,7],[7,1],[7,4],[7,7]];
+const GIRANDOLA=[[0,0],[0,8],[1,4],[4,1],[4,4],[4,7],[7,4],[8,0],[8,8]];
 const WINDOKU=[[1,1],[1,5],[5,1],[5,5]];
-function neighbors(N,c){const r=Math.floor(c/N),k=c%N,o=[];if(r>0)o.push(c-N);if(r<N-1)o.push(c+N);if(k>0)o.push(c-1);if(k<N-1)o.push(c+1);return o}
+const EXTRA9={asterisk:ASTERISK,centerdot:CENTERDOT,girandola:GIRANDOLA};
 
-function buildModel(N,type,regions){
-  const groups=[];
-  for(let i=0;i<N;i++){const row=[],col=[];for(let j=0;j<N;j++){row.push(i*N+j);col.push(j*N+i)}groups.push(row,col)}
-  for(let g=0;g<N;g++){const a=[];for(let c=0;c<N*N;c++)if(regions[c]===g)a.push(c);groups.push(a)}
-  if(type==='diagonal'||type==='diagjigsaw'){const d1=[],d2=[];for(let i=0;i<N;i++){d1.push(i*N+i);d2.push(i*N+N-1-i)}groups.push(d1,d2)}
-  if(type==='asterisk') groups.push(ASTERISK.map(([r,c])=>r*N+c));
-  if(type==='windoku') for(const [r0,c0] of WINDOKU){const a=[];for(let i=0;i<3;i++)for(let j=0;j<3;j++)a.push((r0+i)*N+c0+j);groups.push(a)}
-  const cellGroups=Array.from({length:N*N},()=>[]);
+function gridNeighbors(N,c){const r=Math.floor(c/N),k=c%N,o=[];if(r>0)o.push(c-N);if(r<N-1)o.push(c+N);if(k>0)o.push(c-1);if(k<N-1)o.push(c+1);return o}
+
+/* โมเดล: N = จำนวนสัญลักษณ์, R×C = ขนาดผืน, n = จำนวนช่องจริง */
+function buildModel(rule,N,regions){
+  let R=N,C=N,pos=[],idxAt,regionOf;const groups=[];
+  if(rule==='gattai'||rule==='gattaidiag'){
+    R=C=15;idxAt=new Int16Array(R*C).fill(-1);
+    for(let r=0;r<R;r++)for(let c=0;c<C;c++){if((r<9&&c<9)||(r>=6&&c>=6)){idxAt[r*C+c]=pos.length;pos.push([r,c])}}
+    regionOf=new Int16Array(pos.length);pos.forEach(([r,c],i)=>regionOf[i]=Math.floor(r/3)*5+Math.floor(c/3));
+    const at=(r,c)=>idxAt[r*C+c];
+    for(const o of [0,6]){
+      for(let i=0;i<9;i++){const row=[],col=[];for(let j=0;j<9;j++){row.push(at(o+i,o+j));col.push(at(o+j,o+i))}groups.push(row,col)}
+      for(let b=0;b<9;b++){const a=[],r0=o+Math.floor(b/3)*3,c0=o+(b%3)*3;for(let i=0;i<3;i++)for(let j=0;j<3;j++)a.push(at(r0+i,c0+j));groups.push(a)}
+    }
+    if(rule==='gattaidiag'){const d1=[],d2=[];for(let i=0;i<9;i++){d1.push(at(6+i,6+i));d2.push(at(6+i,14-i))}groups.push(d1,d2)}
+  }else{
+    idxAt=new Int16Array(N*N);for(let i=0;i<N*N;i++){idxAt[i]=i;pos.push([Math.floor(i/N),i%N])}
+    regionOf=Int16Array.from(regions);
+    for(let i=0;i<N;i++){const row=[],col=[];for(let j=0;j<N;j++){row.push(i*N+j);col.push(j*N+i)}groups.push(row,col)}
+    for(let g=0;g<N;g++){const a=[];for(let c=0;c<N*N;c++)if(regions[c]===g)a.push(c);groups.push(a)}
+    if(rule==='diagonal'||rule==='diagjigsaw'){const d1=[],d2=[];for(let i=0;i<N;i++){d1.push(i*N+i);d2.push(i*N+N-1-i)}groups.push(d1,d2)}
+    if(EXTRA9[rule])groups.push(EXTRA9[rule].map(([r,c])=>r*N+c));
+    if(rule==='windoku')for(const [r0,c0] of WINDOKU){const a=[];for(let i=0;i<3;i++)for(let j=0;j<3;j++)a.push((r0+i)*N+c0+j);groups.push(a)}
+  }
+  const n=pos.length;
+  const cellGroups=Array.from({length:n},()=>[]);
   groups.forEach((g,gi)=>g.forEach(c=>cellGroups[c].push(gi)));
-  return {N,type,regions,groups,cellGroups,consec:null};
+  const shade=new Uint8Array(n);
+  if(EXTRA9[rule])for(const [r,c] of EXTRA9[rule])shade[r*N+c]=1;
+  if(rule==='windoku')for(const [r0,c0] of WINDOKU)for(let i=0;i<3;i++)for(let j=0;j<3;j++)shade[(r0+i)*N+c0+j]=2;
+  if(rule==='gattai'||rule==='gattaidiag')for(let r=6;r<9;r++)for(let c=6;c<9;c++)shade[idxAt[r*C+c]]=4;
+  const diagSquares=[];
+  if(rule==='diagonal'||rule==='diagjigsaw')diagSquares.push([0,0,N]);
+  if(rule==='gattaidiag')diagSquares.push([6,6,9]);
+  return {rule,N,R,C,n,pos,idxAt,regionOf,groups,cellGroups,shade,diagSquares,
+    pairs:null,cages:null,cageOf:null,triples:null,tripOf:null};
+}
+function neighborsOf(m,i){
+  const [r,c]=m.pos[i],o=[];
+  for(const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]){
+    const rr=r+dr,cc=c+dc;if(rr<0||cc<0||rr>=m.R||cc>=m.C)continue;
+    const j=m.idxAt[rr*m.C+cc];if(j>=0)o.push(j);
+  }
+  return o;
 }
 
 const POP=new Uint8Array(1024);for(let i=1;i<1024;i++)POP[i]=POP[i>>1]+(i&1);
+function rangeMask(lo,hi,N){lo=Math.max(1,lo);hi=Math.min(N,hi);if(lo>hi)return 0;return ((1<<(hi+1))-1)&~((1<<lo)-1)}
 
-/* นับคำตอบ (หยุดที่ limit) — รองรับ parity และ consecutive */
+/* ตัวแก้: นับคำตอบ (หยุดที่ limit) — รองรับ parity, ความสัมพันธ์คู่ช่อง, กรอบ Killer, ลูกศร Rossini */
+// ชนิดความสัมพันธ์คู่ช่อง: 0 ต่างกัน 1 | 1 ห้ามต่างกัน 1 | 2 รวม 10 | 3 รวม 5 | 4 ห้ามรวม 10/5 | 5 ช่องนี้ < เพื่อน | 6 ช่องนี้ > เพื่อน
 function solve(model,givens,opt){
-  const {N,groups,cellGroups}=model, NN=N*N;
+  const {N,n,cellGroups,groups}=model;
   const FULL=((1<<(N+1))-1)&~1;
   const limit=opt.limit||2, maxNodes=opt.maxNodes||300000, rng=opt.rng||null, parity=opt.parity||null;
-  const consec=model.consec; // array of [nb,marked] per cell, or null
+  const pairs=model.pairs,cages=model.cages,cageOf=model.cageOf,triples=model.triples,tripOf=model.tripOf;
   const grid=Int8Array.from(givens), used=new Int32Array(groups.length);
-  for(let c=0;c<NN;c++){const v=grid[c];if(!v)continue;const b=1<<v;
+  for(let c=0;c<n;c++){const v=grid[c];if(!v)continue;const b=1<<v;
     if(parity&&!(parity[c]&b))return{count:0,sol:null};
-    for(const g of cellGroups[c]){if(used[g]&b)return{count:0,sol:null};used[g]|=b}
-    if(consec)for(const [nb,mk] of consec[c]){const w=grid[nb];if(w){const d=Math.abs(v-w)===1;if(d!==mk)return{count:0,sol:null}}}}
+    for(const g of cellGroups[c]){if(used[g]&b)return{count:0,sol:null};used[g]|=b}}
   let count=0,nodes=0,sol=null,aborted=false;
   function cand(c){
     let m=FULL; if(parity)m&=parity[c];
     const cg=cellGroups[c]; for(let i=0;i<cg.length;i++)m&=~used[cg[i]];
-    if(consec&&m){const ns=consec[c];for(let i=0;i<ns.length;i++){const v=grid[ns[i][0]];if(v){const adj=((1<<(v-1))|(1<<(v+1)))&FULL;m&=ns[i][1]?adj:~adj}}}
+    if(!m)return 0;
+    if(pairs){const ps=pairs[c];for(let i=0;i<ps.length;i++){const v=grid[ps[i][0]];if(!v)continue;
+      switch(ps[i][1]){
+        case 0:m&=((1<<(v-1))|(1<<(v+1)));break;
+        case 1:m&=~((1<<(v-1))|(1<<(v+1)));break;
+        case 2:m&=(10-v>=1&&10-v<=N)?(1<<(10-v)):0;break;
+        case 3:m&=(5-v>=1)?(1<<(5-v)):0;break;
+        case 4:{let x=0;if(10-v>=1&&10-v<=N)x|=1<<(10-v);if(5-v>=1)x|=1<<(5-v);m&=~x;break}
+        case 5:m&=(1<<v)-2;break;
+        case 6:m&=~((1<<(v+1))-1);break;
+      }}
+      m&=FULL;if(!m)return 0;}
+    if(cages){const cg2=cages[cageOf[c]];let S=0,k=0;for(const x of cg2.cells){if(grid[x])S+=grid[x];else k++}
+      const Rm=cg2.sum-S;
+      if(k===1)m&=(Rm>=1&&Rm<=N)?1<<Rm:0;
+      else{const j=k-1;m&=rangeMask(Rm-(j*N-j*(j-1)/2),Rm-j*(j+1)/2,N)}
+      if(!m)return 0;}
+    if(tripOf){for(const [t,p] of tripOf[c]){const T=triples[t];
+      if(T.mode==='inc'){for(let q=0;q<3;q++){if(q===p)continue;const w=grid[T.cells[q]];if(!w)continue;m&=q<p?~((1<<(w+1))-1):(1<<w)-2}m&=FULL}
+      else{const a=[grid[T.cells[0]],grid[T.cells[1]],grid[T.cells[2]]];a[p]=0;
+        if((p===0||a[0])&&(p===1||a[1])&&(p===2||a[2])){let mm=0;
+          for(let v=1;v<=N;v++){if(!(m>>v&1))continue;a[p]=v;if(!((a[0]<a[1]&&a[1]<a[2])||(a[0]>a[1]&&a[1]>a[2])))mm|=1<<v}
+          m=mm}}
+      if(!m)return 0;}}
     return m;
   }
   function rec(){
     if(++nodes>maxNodes){aborted=true;return}
     let best=-1,bm=0,bc=99;
-    for(let c=0;c<NN;c++){if(grid[c])continue;const m=cand(c);if(!m)return;const p=POP[m];if(p<bc){bc=p;best=c;bm=m;if(p===1)break}}
+    for(let c=0;c<n;c++){if(grid[c])continue;const m=cand(c);if(!m)return;const p=POP[m];if(p<bc){bc=p;best=c;bm=m;if(p===1)break}}
     if(best<0){count++;if(!sol)sol=Int8Array.from(grid);return}
     const vals=[];for(let v=1;v<=N;v++)if(bm>>v&1)vals.push(v);
     if(rng)shuffle(vals,rng);
@@ -262,17 +384,17 @@ function connected(reg,N,r){
   const cells=[];for(let c=0;c<N*N;c++)if(reg[c]===r)cells.push(c);
   if(!cells.length)return false;
   const seen=new Set([cells[0]]),st=[cells[0]];
-  while(st.length){const c=st.pop();for(const n of neighbors(N,c))if(reg[n]===r&&!seen.has(n)){seen.add(n);st.push(n)}}
+  while(st.length){const c=st.pop();for(const nb of gridNeighbors(N,c))if(reg[nb]===r&&!seen.has(nb)){seen.add(nb);st.push(nb)}}
   return seen.size===cells.length;
 }
-function makeJigsaw(N,rng){
-  const reg=boxRegions(N);let moves=0,tries=0;const target=N*6;
+function makeJigsaw(N,rng,orient){
+  const reg=boxRegions(N,orient);let moves=0,tries=0;const target=N*6;
   while(moves<target&&tries<20000){
     tries++;
     const a=Math.floor(rng()*N*N),A=reg[a];
-    const ob=neighbors(N,a).filter(n=>reg[n]!==A);if(!ob.length)continue;
+    const ob=gridNeighbors(N,a).filter(x=>reg[x]!==A);if(!ob.length)continue;
     const B=reg[ob[Math.floor(rng()*ob.length)]];
-    const bs=[];for(let c=0;c<N*N;c++)if(reg[c]===B&&c!==a&&neighbors(N,c).some(n=>reg[n]===A&&n!==a))bs.push(c);
+    const bs=[];for(let c=0;c<N*N;c++)if(reg[c]===B&&c!==a&&gridNeighbors(N,c).some(x=>reg[x]===A&&x!==a))bs.push(c);
     if(!bs.length)continue;
     const b=bs[Math.floor(rng()*bs.length)];
     reg[a]=B;reg[b]=A;
@@ -281,53 +403,126 @@ function makeJigsaw(N,rng){
   return reg;
 }
 
-/* ================== สร้างโจทย์หนึ่งข้อ ================== */
-const CLUES={6:{easy:17,medium:14,hard:11},9:{easy:36,medium:30,hard:25}};
-const CLUE_FACTOR={evenodd:0.85,consecutive:0.6};
+/* ================== ข้อมูลเสริมของแต่ละกติกา ================== */
+function addPairs(model,fn){
+  model.pairs=Array.from({length:model.n},()=>[]);
+  for(let c=0;c<model.n;c++)for(const nb of neighborsOf(model,c)){const k=fn(c,nb);if(k!==null&&k!==undefined)model.pairs[c].push([nb,k])}
+}
+function makeCages(model,sol,rng){
+  const n=model.n,cageOf=new Int16Array(n).fill(-1),cages=[];
+  const order=shuffle([...Array(n).keys()],rng);
+  const pickSize=()=>{const x=rng();return x<0.06?1:x<0.40?2:x<0.74?3:x<0.92?4:5};
+  for(const s of order){
+    if(cageOf[s]>=0)continue;
+    const id=cages.length,cells=[s],digits=new Set([sol[s]]);cageOf[s]=id;
+    const size=pickSize();
+    while(cells.length<size){
+      const fr=[];for(const c of cells)for(const nb of neighborsOf(model,c))if(cageOf[nb]<0&&!digits.has(sol[nb])&&!fr.includes(nb))fr.push(nb);
+      if(!fr.length)break;
+      const nb=fr[Math.floor(rng()*fr.length)];cageOf[nb]=id;cells.push(nb);digits.add(sol[nb]);
+    }
+    cages.push({cells,sum:cells.reduce((a,c)=>a+sol[c],0)});
+  }
+  // ช่องเดี่ยวที่เหลือรวมกับกรอบข้างเคียงถ้าทำได้
+  for(const cg of cages){
+    if(cg.cells.length!==1||cg.merged)continue;
+    const c=cg.cells[0];
+    for(const nb of shuffle(neighborsOf(model,c),rng)){
+      const other=cages[cageOf[nb]];if(other===cg||other.cells.length>=5||other.cells.length===0)continue;
+      if(other.cells.some(x=>sol[x]===sol[c]))continue;
+      other.cells.push(c);other.sum+=sol[c];cg.cells=[];cageOf[c]=cageOf[nb];break;
+    }
+  }
+  const live=cages.filter(c=>c.cells.length);
+  const remap=new Map();live.forEach((c,i)=>c.cells.forEach(x=>remap.set(x,i)));
+  for(let i=0;i<n;i++)cageOf[i]=remap.get(i);
+  model.cages=live;model.cageOf=cageOf;
+  // ตัวเลขในกรอบห้ามซ้ำ
+  for(const cg of live){if(cg.cells.length>1){model.groups.push(cg.cells.slice());const gi=model.groups.length-1;cg.cells.forEach(c=>model.cellGroups[c].push(gi))}}
+}
+function makeRossini(model,sol){
+  const N=9,triples=[],tripOf=Array.from({length:model.n},()=>[]);
+  const sides=[];
+  for(let k=0;k<9;k++){
+    sides.push({side:'top',k,cells:[k,9+k,18+k]});
+    sides.push({side:'bottom',k,cells:[72+k,63+k,54+k]});
+    sides.push({side:'left',k,cells:[k*9,k*9+1,k*9+2]});
+    sides.push({side:'right',k,cells:[k*9+8,k*9+7,k*9+6]});
+  }
+  for(const s of sides){
+    const [a,b,c]=s.cells.map(x=>sol[x]);
+    let mode='none',cells=s.cells.slice(),arrow=null;
+    if(a<b&&b<c){mode='inc';arrow='in'}
+    else if(a>b&&b>c){mode='inc';arrow='out';cells=cells.reverse()}
+    const t=triples.length;triples.push({cells,mode,side:s.side,k:s.k,arrow});
+    cells.forEach((x,p)=>tripOf[x].push([t,p]));
+  }
+  model.triples=triples;model.tripOf=tripOf;
+}
 
-function generatePuzzle(type,N,diff,seed){
+/* ================== สร้างโจทย์หนึ่งข้อ ================== */
+const CLUES={6:{easy:17,medium:14,hard:11},8:{easy:28,medium:24,hard:20},9:{easy:36,medium:30,hard:25}};
+const CLUE_FACTOR={evenodd:0.85,consecutive:0.6,xv:0.55,rossini:0.75,greater:0,killer:0,gattai:1.75,gattaidiag:1.65};
+
+function generatePuzzle(type,N,diff,seed,boxMode){
+  const T=TYPES[type],rule=T.rule;
   const rng=mulberry32(seed);
-  const isJig=type==='jigsaw'||type==='diagjigsaw';
+  const isJig=rule==='jigsaw'||rule==='diagjigsaw';
+  const orient=N===9?'h':boxMode==='random'?(rng()<0.5?'h':'v'):(boxMode||'h');
   let model,sol;
-  for(let attempt=0;attempt<60;attempt++){
-    const regions=isJig?makeJigsaw(N,rng):boxRegions(N);
-    model=buildModel(N,type,regions);
-    const r=solve(model,new Int8Array(N*N),{limit:1,rng,maxNodes:isJig?60000:400000});
+  for(let attempt=0;attempt<80;attempt++){
+    const regions=isJig?makeJigsaw(N,rng,orient):boxRegions(N,orient);
+    model=buildModel(rule,N,regions);
+    const r=solve(model,new Int8Array(model.n),{limit:1,rng,maxNodes:isJig?60000:400000});
     if(r.sol){sol=r.sol;break}
   }
-  if(!sol)throw new Error('สร้างตาราง '+type+' ไม่สำเร็จ');
-  const NN=N*N;
-  let parity=null,shaded=null,bars=null;
-  if(type==='evenodd'){
-    let EVEN=0,ODD=0;for(let v=1;v<=N;v++){if(v%2===0)EVEN|=1<<v;else ODD|=1<<v}
-    parity=new Int32Array(NN);shaded=new Uint8Array(NN);
-    for(let c=0;c<NN;c++){shaded[c]=sol[c]%2===0?1:0;parity[c]=shaded[c]?EVEN:ODD}
+  if(!sol)throw new Error('สร้างตาราง '+T.en+' ไม่สำเร็จ');
+  const n=model.n;
+  let parity=null,EVEN=0,ODD=0;
+  for(let v=1;v<=N;v++){if(v%2===0)EVEN|=1<<v;else ODD|=1<<v}
+  const marks={bars:null,xv:null,ineq:null};
+  if(rule==='evenodd'){
+    parity=new Int32Array(n);
+    for(let c=0;c<n;c++){const e=sol[c]%2===0;model.shade[c]=e?3:0;parity[c]=e?EVEN:ODD}
   }
-  if(type==='consecutive'){
-    model.consec=Array.from({length:NN},()=>[]);bars=[];
-    for(let c=0;c<NN;c++)for(const n of neighbors(N,c)){const mk=Math.abs(sol[c]-sol[n])===1;model.consec[c].push([n,mk]);if(mk&&n>c)bars.push([c,n])}
+  if(rule==='consecutive'){
+    addPairs(model,(a,b)=>Math.abs(sol[a]-sol[b])===1?0:1);
+    marks.bars=[];for(let c=0;c<n;c++)for(const [nb,k] of model.pairs[c])if(k===0&&nb>c)marks.bars.push([c,nb]);
   }
+  if(rule==='xv'){
+    addPairs(model,(a,b)=>{const s=sol[a]+sol[b];return s===10?2:s===5?3:4});
+    marks.xv=[];for(let c=0;c<n;c++)for(const [nb,k] of model.pairs[c])if(k!==4&&nb>c)marks.xv.push([c,nb,k===2?'X':'V']);
+  }
+  if(rule==='greater'){
+    addPairs(model,(a,b)=>model.regionOf[a]===model.regionOf[b]?(sol[a]<sol[b]?5:6):null);
+    marks.ineq=[];for(let c=0;c<n;c++)for(const [nb] of model.pairs[c])if(nb>c)marks.ineq.push([c,nb]);
+  }
+  if(rule==='killer')makeCages(model,sol,rng);
+  if(rule==='rossini')makeRossini(model,sol);
+
   // ลบตัวเลขแบบสมมาตร
-  const target=Math.round(CLUES[N][diff]*(CLUE_FACTOR[type]||1));
-  const giv=Int8Array.from(sol);let clues=NN;
-  const order=[];for(let c=0;c<NN;c++){const m=NN-1-c;if(c<=m)order.push(c)}
+  const target=(rule==='killer'||rule==='greater')
+    ?Math.round(CLUES[N][diff]*{easy:0.4,medium:0.2,hard:0}[diff])
+    :Math.round(CLUES[N][diff]*(CLUE_FACTOR[rule]??1));
+  const heavy=rule==='killer'||rule==='rossini'||rule==='greater';
+  const giv=Int8Array.from(sol);let clues=n;
+  const order=[];for(let c=0;c<n;c++){const m=n-1-c;if(c<=m)order.push(c)}
   shuffle(order,rng);
   for(const c of order){
-    const m=NN-1-c,pair=c===m?[c]:[c,m];
+    const m=n-1-c,pair=c===m?[c]:[c,m];
     if(clues-pair.length<target)continue;
     const keep=pair.map(x=>giv[x]);
     pair.forEach(x=>giv[x]=0);
-    const r=solve(model,giv,{limit:2,parity,maxNodes:200000});
+    const r=solve(model,giv,{limit:2,parity,maxNodes:heavy?80000:200000});
     let ok=r.count===1&&!r.aborted;
-    if(ok&&type==='evenodd'){ // กันกรณีตีความว่าช่องแรเงาเป็นเลขคี่ทั้งหมด
-      let EVEN=0,ODD=0;for(let v=1;v<=N;v++){if(v%2===0)EVEN|=1<<v;else ODD|=1<<v}
-      const alt=new Int32Array(NN);for(let k=0;k<NN;k++)alt[k]=shaded[k]?ODD:EVEN;
+    if(ok&&rule==='evenodd'){ // กันกรณีตีความว่าช่องแรเงาเป็นเลขคี่ทั้งหมด
+      const alt=new Int32Array(n);for(let k=0;k<n;k++)alt[k]=model.shade[k]?ODD:EVEN;
       const r2=solve(model,giv,{limit:1,parity:alt,maxNodes:200000});
       if(r2.count>0||r2.aborted)ok=false;
     }
     if(ok)clues-=pair.length;else pair.forEach((x,i)=>giv[x]=keep[i]);
   }
-  return {type,N,regions:model.regions,givens:giv,sol,shaded,bars,clues};
+  return {type,rule,sym:T.sym,N,orient,model,givens:giv,sol,marks,clues,blanks:n-clues};
 }
 
 /* ================== วาดหน้า ================== */
@@ -352,90 +547,206 @@ function dotted(ctx,x1,x2,y){
 }
 function textAt(ctx,s,x,y,align){ctx.textAlign=align||'left';ctx.textBaseline='alphabetic';ctx.fillText(s,x,y)}
 
-function drawGrid(ctx,P,x,y,S,mode){ // mode: 'puzzle'|'answer'
-  const N=P.N,lw=S/34;
+/* ขนาดตารางในหน่วย "ช่อง" (รวมขอบลูกศรของ Rossini) */
+function gridExtent(P){const m=P.model,pad=P.rule==='rossini'?0.8:0;return {w:m.C+2*pad,h:m.R+2*pad,pad}}
+function cellCap(P,answer){
+  if(P.rule==='gattai'||P.rule==='gattaidiag')return answer?14:24;
+  return answer?{6:29,8:24,9:21}[P.N]:{6:46,8:38,9:34}[P.N];
+}
+const SHADE_COL=['', '#cfcfcf', '#d6d6d6', '#c9c9c9', '#e4e4e4'];
+
+function arrow(ctx,x1,y1,x2,y2,hw){
+  const dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,hl=hw*1.5;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2-ux*hl,y2-uy*hl);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-ux*hl-uy*hw,y2-uy*hl+ux*hw);ctx.lineTo(x2-ux*hl+uy*hw,y2-uy*hl-ux*hw);ctx.closePath();ctx.fill();
+}
+
+function drawGrid(ctx,P,x,y,S,mode){ // x,y = มุมซ้ายบนของช่องแรก
+  const m=P.model,N=P.N,n=m.n,pos=m.pos;
+  const cx=i=>x+pos[i][1]*S, cy=i=>y+pos[i][0]*S;
+  const at=(r,c)=>(r<0||c<0||r>=m.R||c>=m.C)?-1:m.idxAt[r*m.C+c];
   ctx.save();
-  ctx.fillStyle='#fff';ctx.fillRect(x,y,S*N,S*N);
-  // แรเงา
-  const shade=(c,col)=>{ctx.fillStyle=col;ctx.fillRect(x+(c%N)*S,y+Math.floor(c/N)*S,S,S)};
-  if(P.type==='evenodd')for(let c=0;c<N*N;c++)if(P.shaded[c])shade(c,'#c9c9c9');
-  if(P.type==='asterisk')for(const [r,c] of ASTERISK)shade(r*N+c,'#cfcfcf');
-  if(P.type==='windoku')for(const [r0,c0] of WINDOKU)for(let i=0;i<3;i++)for(let j=0;j<3;j++)shade((r0+i)*N+c0+j,'#d6d6d6');
+  // พื้นและแรเงา
+  for(let i=0;i<n;i++){ctx.fillStyle=m.shade[i]?SHADE_COL[m.shade[i]]:'#fff';ctx.fillRect(cx(i),cy(i),S,S)}
   // เส้นทแยง
-  if(P.type==='diagonal'||P.type==='diagjigsaw'){
-    ctx.strokeStyle='#b5b5b5';ctx.lineWidth=Math.max(0.5,S/50);ctx.beginPath();
-    for(let i=0;i<N;i++){
-      ctx.moveTo(x+i*S,y+i*S);ctx.lineTo(x+(i+1)*S,y+(i+1)*S);
-      ctx.moveTo(x+(N-i)*S,y+i*S);ctx.lineTo(x+(N-i-1)*S,y+(i+1)*S);
-    }ctx.stroke();
+  if(m.diagSquares.length){
+    ctx.strokeStyle='#9a9a9a';ctx.lineWidth=Math.max(0.5,S/45);ctx.setLineDash([S*0.14,S*0.1]);ctx.beginPath();
+    for(const [r0,c0,k] of m.diagSquares){
+      ctx.moveTo(x+c0*S,y+r0*S);ctx.lineTo(x+(c0+k)*S,y+(r0+k)*S);
+      ctx.moveTo(x+(c0+k)*S,y+r0*S);ctx.lineTo(x+c0*S,y+(r0+k)*S);
+    }
+    ctx.stroke();ctx.setLineDash([]);
   }
   // เส้นบาง
-  ctx.strokeStyle='#000';ctx.lineWidth=Math.max(0.45,S*0.022);ctx.beginPath();
-  for(let i=1;i<N;i++){ctx.moveTo(x+i*S,y);ctx.lineTo(x+i*S,y+N*S);ctx.moveTo(x,y+i*S);ctx.lineTo(x+N*S,y+i*S)}
-  ctx.stroke();
-  // เส้นหนาตามกรอบ
-  ctx.lineWidth=Math.max(1.4,S*0.075);ctx.lineCap='square';ctx.beginPath();
-  const R=P.regions;
-  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
-    const i=r*N+c;
-    if(c<N-1&&R[i]!==R[i+1]){ctx.moveTo(x+(c+1)*S,y+r*S);ctx.lineTo(x+(c+1)*S,y+(r+1)*S)}
-    if(r<N-1&&R[i]!==R[i+N]){ctx.moveTo(x+c*S,y+(r+1)*S);ctx.lineTo(x+(c+1)*S,y+(r+1)*S)}
+  ctx.strokeStyle=m.cages?'#9a9a9a':'#000';ctx.lineWidth=Math.max(0.45,S*0.022);
+  for(let i=0;i<n;i++)ctx.strokeRect(cx(i),cy(i),S,S);
+  ctx.strokeStyle='#000';
+  // เส้นหนา (ขอบกรอบย่อยและขอบนอก)
+  ctx.lineWidth=Math.max(1.7,S*0.078);ctx.lineCap='square';ctx.beginPath();
+  for(let i=0;i<n;i++){
+    const [r,c]=pos[i],X=cx(i),Y=cy(i),reg=m.regionOf[i];
+    const diff=(j)=>j<0||m.regionOf[j]!==reg;
+    if(diff(at(r-1,c))){ctx.moveTo(X,Y);ctx.lineTo(X+S,Y)}
+    if(diff(at(r+1,c))){ctx.moveTo(X,Y+S);ctx.lineTo(X+S,Y+S)}
+    if(diff(at(r,c-1))){ctx.moveTo(X,Y);ctx.lineTo(X,Y+S)}
+    if(diff(at(r,c+1))){ctx.moveTo(X+S,Y);ctx.lineTo(X+S,Y+S)}
   }
-  ctx.stroke();
-  ctx.strokeRect(x,y,N*S,N*S);
+  ctx.stroke();ctx.lineCap='butt';
+  // กรอบเส้นประ Killer
+  if(m.cages){
+    const d=S*0.11,same=(j,i)=>j>=0&&m.cageOf[j]===m.cageOf[i];
+    ctx.strokeStyle='#000';ctx.lineWidth=Math.max(0.5,S*0.025);ctx.setLineDash([S*0.07,S*0.06]);ctx.beginPath();
+    for(let i=0;i<n;i++){
+      const [r,c]=pos[i],X=cx(i),Y=cy(i);
+      const up=same(at(r-1,c),i),dn=same(at(r+1,c),i),lf=same(at(r,c-1),i),rt=same(at(r,c+1),i);
+      const x1=X+(lf?0:d),x2=X+S-(rt?0:d),y1=Y+(up?0:d),y2=Y+S-(dn?0:d);
+      if(!up){ctx.moveTo(x1,Y+d);ctx.lineTo(x2,Y+d)}
+      if(!dn){ctx.moveTo(x1,Y+S-d);ctx.lineTo(x2,Y+S-d)}
+      if(!lf){ctx.moveTo(X+d,y1);ctx.lineTo(X+d,y2)}
+      if(!rt){ctx.moveTo(X+S-d,y1);ctx.lineTo(X+S-d,y2)}
+      // มุมด้านในของกรอบรูปตัว L
+      if(up&&lf&&!same(at(r-1,c-1),i)){ctx.moveTo(X,Y+d);ctx.lineTo(X+d,Y+d);ctx.lineTo(X+d,Y)}
+      if(up&&rt&&!same(at(r-1,c+1),i)){ctx.moveTo(X+S,Y+d);ctx.lineTo(X+S-d,Y+d);ctx.lineTo(X+S-d,Y)}
+      if(dn&&lf&&!same(at(r+1,c-1),i)){ctx.moveTo(X,Y+S-d);ctx.lineTo(X+d,Y+S-d);ctx.lineTo(X+d,Y+S)}
+      if(dn&&rt&&!same(at(r+1,c+1),i)){ctx.moveTo(X+S,Y+S-d);ctx.lineTo(X+S-d,Y+S-d);ctx.lineTo(X+S-d,Y+S)}
+    }
+    ctx.stroke();ctx.setLineDash([]);
+    const fsz=S*0.24;font(ctx,fsz,true);ctx.fillStyle='#000';
+    for(const cg of m.cages){
+      const tl=cg.cells.reduce((a,b)=>(pos[b][0]<pos[a][0]||(pos[b][0]===pos[a][0]&&pos[b][1]<pos[a][1]))?b:a);
+      const s=String(cg.sum),w=ctx.measureText(s).width;
+      ctx.fillStyle=m.shade[tl]?SHADE_COL[m.shade[tl]]:'#fff';ctx.fillRect(cx(tl)+d*0.55,cy(tl)+d*0.55,w+fsz*0.25,fsz*1.05);
+      ctx.fillStyle='#000';textAt(ctx,s,cx(tl)+d*0.55+fsz*0.12,cy(tl)+d*0.55+fsz*0.85);
+    }
+  }
   // ขีดเลขเรียง
-  if(P.bars){
-    ctx.lineWidth=Math.max(0.6,S*0.03);ctx.lineCap='butt';
-    for(const [a,b] of P.bars){
-      const ra=Math.floor(a/N),ca=a%N;
+  if(P.marks.bars){
+    ctx.lineWidth=Math.max(0.6,S*0.03);
+    for(const [a,b] of P.marks.bars){
       let bx,by,bw,bh;
-      if(b===a+1){bw=S*0.11;bh=S*0.44;bx=x+(ca+1)*S-bw/2;by=y+ra*S+(S-bh)/2}
-      else{bw=S*0.44;bh=S*0.11;bx=x+ca*S+(S-bw)/2;by=y+(ra+1)*S-bh/2}
+      if(pos[b][0]===pos[a][0]){bw=S*0.11;bh=S*0.44;bx=cx(a)+S-bw/2;by=cy(a)+(S-bh)/2}
+      else{bw=S*0.44;bh=S*0.11;bx=cx(a)+(S-bw)/2;by=cy(a)+S-bh/2}
       ctx.fillStyle='#fff';ctx.fillRect(bx,by,bw,bh);ctx.strokeStyle='#000';ctx.strokeRect(bx,by,bw,bh);
     }
   }
+  // X / V
+  if(P.marks.xv){
+    const fsz=S*0.36;font(ctx,fsz,true);
+    for(const [a,b,t] of P.marks.xv){
+      const h=pos[b][0]===pos[a][0];
+      const mx=h?cx(a)+S:cx(a)+S/2,my=h?cy(a)+S/2:cy(a)+S;
+      const bw=fsz*0.95;ctx.fillStyle='#fff';ctx.fillRect(mx-bw/2,my-bw/2,bw,bw);
+      ctx.fillStyle='#000';textAt(ctx,t,mx,my+fsz*0.36,'center');
+    }
+  }
+  // เครื่องหมายมากกว่า/น้อยกว่า (ปลายแหลมชี้ไปทางช่องที่น้อยกว่า)
+  if(P.marks.ineq){
+    const L=S*0.1;ctx.strokeStyle='#000';ctx.lineWidth=Math.max(0.6,S*0.035);ctx.lineJoin='miter';
+    for(const [a,b] of P.marks.ineq){
+      const h=pos[b][0]===pos[a][0],aSmall=P.sol[a]<P.sol[b];
+      const mx=h?cx(a)+S:cx(a)+S/2,my=h?cy(a)+S/2:cy(a)+S;
+      ctx.fillStyle='#fff';ctx.fillRect(mx-L*1.1,my-L*1.1,L*2.2,L*2.2);
+      ctx.beginPath();
+      if(h){const s=aSmall?-1:1;ctx.moveTo(mx-s*L,my-L);ctx.lineTo(mx+s*L,my);ctx.lineTo(mx-s*L,my+L)}
+      else{const s=aSmall?-1:1;ctx.moveTo(mx-L,my-s*L);ctx.lineTo(mx,my+s*L);ctx.lineTo(mx+L,my-s*L)}
+      ctx.stroke();
+    }
+  }
+  // ลูกศร Rossini
+  if(m.triples){
+    ctx.strokeStyle='#777';ctx.fillStyle='#777';ctx.lineWidth=Math.max(0.8,S*0.06);
+    const g=S*0.14,len=S*0.52,hw=S*0.13;
+    for(const T of m.triples){if(!T.arrow)continue;
+      const k=T.k,inn=T.arrow==='in';
+      let x1,y1,x2,y2;
+      if(T.side==='top'){const ax=x+(k+0.5)*S,yo=y-g,yi=y-g-len;[x1,y1,x2,y2]=inn?[ax,yi,ax,yo]:[ax,yo,ax,yi]}
+      if(T.side==='bottom'){const ax=x+(k+0.5)*S,yo=y+9*S+g,yi=y+9*S+g+len;[x1,y1,x2,y2]=inn?[ax,yi,ax,yo]:[ax,yo,ax,yi]}
+      if(T.side==='left'){const ay=y+(k+0.5)*S,xo=x-g,xi=x-g-len;[x1,y1,x2,y2]=inn?[xi,ay,xo,ay]:[xo,ay,xi,ay]}
+      if(T.side==='right'){const ay=y+(k+0.5)*S,xo=x+9*S+g,xi=x+9*S+g+len;[x1,y1,x2,y2]=inn?[xi,ay,xo,ay]:[xo,ay,xi,ay]}
+      arrow(ctx,x1,y1,x2,y2,hw);
+    }
+  }
   // ตัวเลข/อักษร
-  const sy=SYMBOLS[symSet(P.type)];
-  const fs=S*(P.type==='thai'?0.56:0.6)*(P.bars?0.88:1);
-  ctx.fillStyle='#000';
-  for(let c=0;c<N*N;c++){
-    const g=P.givens[c];let v=g;
-    if(mode==='answer')v=P.sol[c];
+  const sy=SYMBOLS[P.sym];
+  let fs=S*(P.sym==='thai'?0.56:0.6);
+  if(P.marks.bars||P.marks.xv||P.marks.ineq)fs*=0.86;
+  if(m.cages)fs*=0.82;
+  const dy=m.cages?S*0.06:0;
+  for(let i=0;i<n;i++){
+    const g=P.givens[i];let v=g;
+    if(mode==='answer')v=P.sol[i];
     if(!v)continue;
-    const bold=mode==='answer'?!!g:false;
-    font(ctx,fs,bold);ctx.fillStyle=(mode==='answer'&&!g)?'#3a3a3a':'#000';
-    textAt(ctx,sy[v],x+(c%N+0.5)*S,y+Math.floor(c/N)*S+S*0.5+fs*0.36,'center');
+    font(ctx,fs,mode==='answer'&&!!g);ctx.fillStyle=(mode==='answer'&&!g)?'#3a3a3a':'#000';
+    textAt(ctx,sy[v],cx(i)+S*0.5,cy(i)+S*0.5+fs*0.36+dy,'center');
   }
   ctx.restore();
 }
 
-function coverPage(st){
+function itemPoints(st,i,P){return (st.style==='edu'&&st.round==='final'&&P)?P.blanks:(+st.items[i].points||0)}
+function footer(ctx,st,W,H,label){
+  ctx.save();font(ctx,9,false);ctx.fillStyle='#777';
+  textAt(ctx,`รหัสชุด ${st.seed}${label?' · '+label:''}`,W-28,H-16,'right');
+  ctx.restore();
+}
+
+function coverPage(st,puzzles){
   return {orient:'p',draw(ctx,W,H){
     const M=64;ctx.fillStyle='#000';
     font(ctx,17,true);
     let y=82;
     for(const t of [st.t1,st.t2,st.t3]){if(t){textAt(ctx,t,W/2,y,'center');y+=27}}
     y+=30;font(ctx,14,false);
-    textAt(ctx,'ชื่อ',M,y);let xa=M+ctx.measureText('ชื่อ').width+3;
-    const cx=W*0.64;dotted(ctx,xa,cx-3,y+1);textAt(ctx,'ชั้น',cx,y);dotted(ctx,cx+ctx.measureText('ชั้น').width+3,W-M,y+1);
-    y+=32;textAt(ctx,'โรงเรียน',M,y);dotted(ctx,M+ctx.measureText('โรงเรียน').width+3,W-M,y+1);
+    const field=(label,x1,x2)=>{textAt(ctx,label,x1,y);dotted(ctx,x1+ctx.measureText(label).width+3,x2-6,y+1)};
+    const edu=st.style==='edu';
+    if(edu){
+      field('ชื่อ-นามสกุล',M,W*0.66);field('เลขที่นั่ง',W*0.66,W-M+6);
+      y+=32;field('โรงเรียน',M,W*0.66);field('ชั้น',W*0.66,W-M+6);
+    }else{
+      field('ชื่อ',M,W*0.64);field('ชั้น',W*0.64,W-M+6);
+      y+=32;field('โรงเรียน',M,W-M+6);
+    }
     y+=44;
-    const n=st.items.length,rowH=n>10?24:27;
-    const c1=M+18,c2=M+255,c3=M+348,c4=W-M-10;
+    const n=st.items.length,rowH=n>12?20:n>10?24:27,rowF=n>12?13:14;
+    const c1=M+18,c2=M+(edu?236:255),c3=M+(edu?340:348),c4=W-M-10;
     const scoreRow=(label,pts,bold)=>{
-      font(ctx,14,bold);textAt(ctx,label,c1,y);textAt(ctx,pts+' คะแนน',c2,y);
+      let f=rowF;font(ctx,f,bold);while(ctx.measureText(label).width>c2-c1-10&&f>9){f-=0.5;font(ctx,f,bold)}
+      textAt(ctx,label,c1,y);font(ctx,rowF,bold);textAt(ctx,(edu?'เต็ม ':'')+pts+' คะแนน',c2,y);
       textAt(ctx,'ได้',c3,y);const kw=ctx.measureText('คะแนน').width;
       dotted(ctx,c3+ctx.measureText('ได้').width+3,c4-kw-4,y+1);textAt(ctx,'คะแนน',c4,y,'right');y+=rowH;
     };
-    st.items.forEach((it,i)=>scoreRow(`${i+1}. ${itemTitle(it,st.style)}`,it.points,false));
-    scoreRow('รวม',st.items.reduce((a,b)=>a+(+b.points||0),0),true);
-    y+=26;
-    const heads=['เวลาที่ใช้','เวลาที่เหลือ','คะแนนโบนัส','คะแนนที่ได้','คะแนนรวม'];
-    const tw=W-2*M,cw=tw/5,h1=34,h2=46;
+    let total=0;
+    st.items.forEach((it,i)=>{const p=itemPoints(st,i,puzzles&&puzzles[i]);total+=p;scoreRow(`${i+1}. ${itemTitle(it,st.style)}`,p,false)});
+    scoreRow('รวม',total,true);
+    y+=22;
+    const heads=edu?['เวลาที่ยกมือ','เวลาที่เหลือ','คะแนนรวม','ลายมือชื่อกรรมการ']:['เวลาที่ใช้','เวลาที่เหลือ','คะแนนโบนัส','คะแนนที่ได้','คะแนนรวม'];
+    const k=heads.length,tw=W-2*M,cw=tw/k,h1=34,h2=46;
     ctx.strokeStyle='#000';ctx.lineWidth=0.9;
     ctx.strokeRect(M,y,tw,h1+h2);ctx.beginPath();ctx.moveTo(M,y+h1);ctx.lineTo(M+tw,y+h1);
-    for(let i=1;i<5;i++){ctx.moveTo(M+i*cw,y);ctx.lineTo(M+i*cw,y+h1+h2)}ctx.stroke();
-    font(ctx,13.5,true);heads.forEach((h,i)=>textAt(ctx,h,M+(i+.5)*cw,y+h1/2+5,'center'));
+    for(let i=1;i<k;i++){ctx.moveTo(M+i*cw,y);ctx.lineTo(M+i*cw,y+h1+h2)}ctx.stroke();
+    font(ctx,k===4?12.5:13.5,true);heads.forEach((h,i)=>textAt(ctx,h,M+(i+.5)*cw,y+h1/2+5,'center'));
+    y+=h1+h2;
+    if(edu){
+      font(ctx,12,false);
+      const est=26+4*19+18*2;
+      if(y+est<=H-28){
+      y+=26;font(ctx,13.5,true);textAt(ctx,'ข้อควรทราบ',M,y);y+=4;
+      font(ctx,12,false);
+      const notes=[
+        'เขียนชื่อ-นามสกุลและรายละเอียดให้ครบถ้วน และตรวจสอบว่าได้ปริศนาตรงตามรุ่นของตนเอง',
+        'ทำข้อใดก่อนก็ได้ สามารถทดได้ แต่คำตอบในแต่ละช่องต้องชัดเจน และมีขนาดไม่น้อยกว่า 50% ของช่อง',
+        st.round==='final'
+          ?'รอบชิงชนะเลิศ: นับคะแนนตามจำนวนช่องที่ตอบถูกต้อง ช่องที่อ่านไม่ออกหรือตีความได้หลายอย่างจะไม่ได้คะแนน'
+          :'รอบคัดเลือก: ปริศนาข้อใดผิดแม้แต่ 1 ช่อง หรือเติมไม่ครบ ข้อนั้นจะไม่ได้คะแนน',
+        'ทำเสร็จแล้วให้ยกมือ เพื่อให้กรรมการบันทึกเวลา การจัดอันดับเรียงจากคะแนนมากที่สุด หากคะแนนเท่ากันเรียงตามเวลาที่เหลือมากกว่า',
+      ];
+      for(const t of notes){
+        const ls=wrap(ctx,t,tw-18);
+        y+=19;textAt(ctx,'•',M+4,y);
+        ls.forEach((l,j)=>{if(j)y+=17;textAt(ctx,l,M+16,y)});
+      }
+      }
+    }
+    footer(ctx,st,W,H,'ข้อสอบ');
   }};
 }
 
@@ -444,18 +755,23 @@ function puzzlePage(st,pair,startIdx){
     const M=40,gap=40,colW=(W-2*M-gap)/2;
     ctx.strokeStyle='#000';ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(W/2,M);ctx.lineTo(W/2,H-M);ctx.stroke();
     pair.forEach((P,k)=>{
-      const it=st.items[startIdx+k];
+      const i=startIdx+k,it=st.items[i];
       const x0=M+k*(colW+gap);let y=M+18;
       ctx.fillStyle='#000';font(ctx,14.5,true);
-      const head=`${startIdx+k+1}. ${itemTitle(it,st.style)} ${it.points} คะแนน`;
+      const pts=itemPoints(st,i,P);
+      const head=st.style==='edu'?`${i+1}. ${itemTitle(it,st.style)} (${pts} คะแนน)`:`${i+1}. ${itemTitle(it,st.style)} ${pts} คะแนน`;
       for(const l of wrap(ctx,head,colW)){textAt(ctx,l,x0,y);y+=21}
-      y+=2;font(ctx,13,false);
-      for(const l of wrap(ctx,instruction(it.type,it.size,st.style),colW)){textAt(ctx,l,x0,y);y+=20}
-      y+=14;
-      const N=P.N,cap=N===9?34:46;
-      const S=Math.min(cap,colW/N,(H-M-y)/N);
-      drawGrid(ctx,P,x0+(colW-S*N)/2,y,S,'puzzle');
+      y+=2;
+      const txt=instruction(it.type,it.size,st.style,P.orient);
+      font(ctx,txt.length>230?12:13,false);
+      const lh=txt.length>230?18:20;
+      for(const l of wrap(ctx,txt,colW)){textAt(ctx,l,x0,y);y+=lh}
+      y+=12;
+      const ext=gridExtent(P);
+      const S=Math.min(cellCap(P,false),colW/ext.w,(H-M-y)/ext.h);
+      drawGrid(ctx,P,x0+(colW-S*ext.w)/2+ext.pad*S,y+ext.pad*S,S,'puzzle');
     });
+    footer(ctx,st,W,H,'ข้อสอบ');
   }};
 }
 
@@ -471,12 +787,14 @@ function answerPages(st,puzzles){
       const rows=Math.ceil(perPage/2),rowH=(H-top-M)/rows;
       chunk.forEach((P,k)=>{
         const col=k%2,row=Math.floor(k/2);
-        const N=P.N,S=Math.min(N===9?21:29,(rowH-24)/N,((W-2*M)/2-56)/N);
-        const gw=S*N,cx=M+(col+0.5)*(W-2*M)/2;
-        const gx=cx-gw/2+18,gy=top+row*rowH+(rowH-gw)/2;
+        const ext=gridExtent(P);
+        const S=Math.min(cellCap(P,true),(rowH-24)/ext.h,((W-2*M)/2-56)/ext.w);
+        const gw=S*ext.w,gh=S*ext.h,cx=M+(col+0.5)*(W-2*M)/2;
+        const gx=cx-gw/2+18,gy=top+row*rowH+(rowH-gh)/2;
         font(ctx,13.5,true);ctx.fillStyle='#000';textAt(ctx,`ข้อ ${p+k+1}`,gx-8,gy+14,'right');
-        drawGrid(ctx,P,gx,gy,S,'answer');
+        drawGrid(ctx,P,gx+ext.pad*S,gy+ext.pad*S,S,'answer');
       });
+      footer(ctx,st,W,H,'เฉลย');
     }});
   }
   return pages;
@@ -485,7 +803,7 @@ function answerPages(st,puzzles){
 function buildPages(st,puzzles,which){
   const pages=[];
   if(which!=='key'){
-    if(st.cover)pages.push(coverPage(st));
+    if(st.cover)pages.push(coverPage(st,puzzles));
     for(let i=0;i<puzzles.length;i+=2)pages.push(puzzlePage(st,puzzles.slice(i,i+2),i));
   }
   if(which==='key'||which==='all'||(which==='preview'&&st.key))pages.push(...answerPages(st,puzzles));
@@ -547,16 +865,26 @@ let state=null, puzzles=null, built=null;
 
 function defaultState(p){
   const P=PRESETS[p];
-  return {preset:p,style:P.style,t1:P.t1,t2:P.t2,t3:P.t3,t4:P.t4,diff:'medium',paper:'A4',cover:true,key:true,
+  return {preset:p,style:P.style,t1:P.t1,t2:P.t2,t3:P.t3,t4:P.t4,diff:'medium',paper:'A4',cover:true,key:true,boxMode:P.boxMode,round:'qual',
     seed:randomSeed(),items:P.items.map(([type,size])=>({type,size,points:10,salt:0}))};
 }
 function randomSeed(){const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
 function save(){try{localStorage.setItem('sudokuExamState',JSON.stringify(state))}catch(e){}}
-function load(){try{const s=JSON.parse(localStorage.getItem('sudokuExamState'));if(s&&s.items)return s}catch(e){}return null}
+function load(){try{const s=JSON.parse(localStorage.getItem('sudokuExamState'));if(s&&s.items&&PRESETS[s.preset]){
+  s.items=s.items.filter(it=>TYPES[it.type]);if(!s.items.length)return null;
+  s.items.forEach(it=>{if(!TYPES[it.type].sizes.includes(it.size))it.size=TYPES[it.type].sizes.at(-1)});
+  s.boxMode=s.boxMode||PRESETS[s.preset].boxMode;s.round=s.round||'qual';return s}}catch(e){}return null}
 
 function renderForm(){
   for(const k of ['t1','t2','t3','t4','seed'])$(k).value=state[k];
   $('paper').value=state.paper;$('optCover').checked=state.cover;$('optKey').checked=state.key;
+  $('boxMode').value=state.boxMode;$('round').value=state.round;
+  const edu=state.style==='edu';
+  $('roundWrap').style.visibility=edu?'visible':'hidden';
+  $('roundNote').textContent=!edu?'':state.round==='final'
+    ?'รอบชิงชนะเลิศ: คะแนนเต็มของแต่ละข้อ = จำนวนช่องว่าง (นับตามช่องที่ตอบถูก)'
+    :'รอบคัดเลือก: ผิดแม้ 1 ช่อง ข้อนั้นไม่ได้คะแนน (กำหนดคะแนนเต็มในช่องคะแนนของแต่ละข้อ)';
+  $('presetNote').textContent=edu?'โหมดแข่งขัน EduPLOYS (ซูโดกุโปร) — มี 30 รูปแบบตามกติกา ใช้คำชี้แจงและเกณฑ์ตามเอกสารการแข่งขัน':'';
   document.querySelectorAll('#presetSeg button').forEach(b=>b.classList.toggle('on',b.dataset.p===state.preset));
   document.querySelectorAll('#diffSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===state.diff));
   const box=$('items');box.innerHTML='';
@@ -564,8 +892,9 @@ function renderForm(){
     const d=document.createElement('div');d.className='item';
     const opts=Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${k===it.type?' selected':''}>${v.th}</option>`).join('');
     const sizes=TYPES[it.type].sizes.map(s=>`<option value="${s}"${s===it.size?' selected':''}>${s}x${s}</option>`).join('');
+    const finalPts=edu&&state.round==='final';
     d.innerHTML=`<span class="n">${i+1}.</span><select data-k="type">${opts}</select><select data-k="size">${sizes}</select>
-      <input type="number" min="0" data-k="points" value="${it.points}" title="คะแนน"><button class="icon" data-a="re" title="สุ่มข้อนี้ใหม่">↻</button><button class="icon" data-a="del" title="ลบข้อ">✕</button>`;
+      <input type="number" min="0" data-k="points" value="${finalPts&&puzzles&&puzzles[i]?puzzles[i].blanks:it.points}" title="${finalPts?'คะแนนเต็ม = จำนวนช่องว่าง':'คะแนน'}"${finalPts?' disabled':''}><button class="icon" data-a="re" title="สุ่มข้อนี้ใหม่">↻</button><button class="icon" data-a="del" title="ลบข้อ">✕</button>`;
     d.querySelectorAll('[data-k]').forEach(el=>el.addEventListener('change',()=>{
       const k=el.dataset.k;
       if(k==='type'){it.type=el.value;if(!TYPES[it.type].sizes.includes(it.size))it.size=TYPES[it.type].sizes.at(-1)}
@@ -594,11 +923,11 @@ async function generate(){
     for(let i=0;i<state.items.length;i++){
       const it=state.items[i];
       status(`กำลังสร้างข้อ ${i+1}/${state.items.length} …`);await tick();
-      const seed=hashStr(`${state.seed}|${i}|${it.type}|${it.size}|${state.diff}|${it.salt||0}`);
-      out.push(generatePuzzle(it.type,it.size,state.diff,seed));
+      const seed=hashStr(`${state.seed}|${i}|${it.type}|${it.size}|${state.diff}|${it.salt||0}|${state.boxMode}`);
+      out.push(generatePuzzle(it.type,it.size,state.diff,seed,state.boxMode));
     }
     puzzles=out;built=JSON.stringify(state);
-    preview();
+    renderForm();preview();
     status(`สร้างเสร็จ ${out.length} ข้อ (รหัสชุด ${state.seed}) — ตรวจแล้วทุกข้อมีคำตอบเดียว`,'ok');
     $('pdfBtn').disabled=false;$('examBtn').disabled=false;$('keyBtn').disabled=false;$('printBtn').disabled=false;
   }catch(e){console.error(e);status('เกิดข้อผิดพลาด: '+e.message,'err')}
@@ -665,7 +994,7 @@ async function exportPDF(which){
 
 /* ===== events ===== */
 document.querySelectorAll('#presetSeg button').forEach(b=>b.onclick=()=>{
-  const keep={diff:state.diff,paper:state.paper,cover:state.cover,key:state.key,seed:state.seed};
+  const keep={diff:state.diff,paper:state.paper,cover:state.cover,key:state.key,seed:state.seed};puzzles=null;
   state=Object.assign(defaultState(b.dataset.p),keep);save();renderForm();generate();
 });
 document.querySelectorAll('#diffSeg button').forEach(b=>b.onclick=()=>{state.diff=b.dataset.d;save();renderForm();generate()});
@@ -673,6 +1002,10 @@ for(const k of ['t1','t2','t3','t4'])$(k).addEventListener('input',()=>{state[k]
 $('seed').addEventListener('change',()=>{state.seed=$('seed').value.trim()||randomSeed();save();renderForm();generate()});
 $('paper').onchange=()=>{state.paper=$('paper').value;save();if(puzzles){built=JSON.stringify(state);preview()}};
 $('optCover').onchange=()=>{state.cover=$('optCover').checked;save();if(puzzles){built=JSON.stringify(state);preview()}};
+$('boxMode').onchange=()=>{state.boxMode=$('boxMode').value;save();generate()};
+$('round').onchange=()=>{state.round=$('round').value;
+  state.t3=state.t3.replace(/^รอบ(คัดเลือก|ชิงชนะเลิศ)/,state.round==='final'?'รอบชิงชนะเลิศ':'รอบคัดเลือก');
+  save();renderForm();if(puzzles){built=JSON.stringify(state);preview()}};
 $('optKey').onchange=()=>{state.key=$('optKey').checked;save();if(puzzles){built=JSON.stringify(state);preview()}};
 $('newSeed').onclick=()=>{state.seed=randomSeed();state.items.forEach(i=>i.salt=0);save();renderForm();generate()};
 $('addItem').onclick=()=>{if(state.items.length>=16)return;state.items.push({type:'classic',size:9,points:10,salt:0});save();renderForm()};

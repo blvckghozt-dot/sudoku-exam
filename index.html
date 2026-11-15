@@ -250,8 +250,8 @@
   <fieldset>
     <legend>แบบฟอร์ม</legend>
     <div class="seg" id="presetSeg">
-      <button data-p="r1">รอบที่ 1 · ประถมศึกษา</button>
-      <button data-p="r2">รอบที่ 2 · ม.ต้น</button>
+      <button data-p="r1">ศิลปหัตถกรรม · ประถม</button>
+      <button data-p="r2">ศิลปหัตถกรรม · มัธยม</button>
       <button data-p="edu">EduPLOYS</button>
     </div>
     <div class="small" id="presetNote" style="margin-top:6px"></div>
@@ -356,8 +356,8 @@ const PRESETS = {
   r1:{ style:'r1', boxMode:'h',
     t1:'ปริศนาซูโดกุรอบที่ 1', t2:'ระดับชั้นประถมศึกษา', t3:'รอบที่ 1 เวลา 60 นาที', t4:'เฉลยปริศนาซูโดกุรอบที่ 1',
     items:[['classic',6],['alphabet',6],['diagonal',6],['jigsaw',6],['thai',6],['classic',9],['alphabet',9],['diagonal',9],['jigsaw',9],['evenodd',9]] },
-  r2:{ style:'r2', boxMode:'h',
-    t1:'ปริศนาซูโดกุรอบที่ 2', t2:'ระดับชั้นมัธยมศึกษาตอนต้น', t3:'รอบที่ 2 เวลา 60 นาที', t4:'เฉลยปริศนาซูโดกุรอบที่ 2',
+  r2:{ style:'hs', boxMode:'h',
+    t1:'งานศิลปหัตถกรรมนักเรียน ปีการศึกษา 2569', t2:'ข้อสอบซูโดกุ 9×9 รอบที่ 1 ระดับมัธยมศึกษาปีที่ 1-3', t3:'', t4:'เฉลยข้อสอบซูโดกุ 9×9 ระดับมัธยมศึกษา',
     items:[['classic',9],['diagonal',9],['alphabet',9],['jigsaw',9],['evenodd',9],['consecutive',9],['asterisk',9],['thai',9],['diagjigsaw',9],['windoku',9]] },
   edu:{ style:'edu', boxMode:'random',
     t1:'การแข่งขันซูโดกุโปร เกมถอดรหัสปริศนาตัวเลข', t2:'รุ่น ......................', t3:'รอบคัดเลือก เวลา 60 นาที', t4:'เฉลยการแข่งขันซูโดกุโปร',
@@ -403,6 +403,22 @@ function instruction(type, N, style, orient){
   if(style==='edu')return eduInstruction(type,N);
   const box = boxText(N,orient), last = SYMBOLS.alpha[N];
   const thaiL = SYMBOLS.thai.slice(1,N+1).join(', ');
+  if(style==='hs'){
+    const R=`เติมตัวเลข 1 ถึง ${N} ลงในช่องว่างไม่ให้ซ้ำกันในแต่ละแถว แนวตั้ง แนวนอน`,bx=box.replace('x','×');
+    const t={
+      classic:`${R} และตารางย่อยขนาด ${bx}`,
+      diagonal:`${R} ตารางย่อย ขนาด ${bx} และ แนวทแยงมุมทั้งสองเส้น`,
+      alphabet:`เติมตัวอักษร A ถึง ${last} ลงในช่องว่างไม่ให้ซ้ำกันในแต่ละแถว แนวตั้ง แนวนอน และตารางย่อย ขนาด ${bx}`,
+      jigsaw:`${R} และตารางย่อยที่ตีกรอบด้วยเส้นสีดำหนา`,
+      evenodd:`${R} และตารางย่อยขนาด ${bx} โดยที่ช่องที่แรเงาจะต้องเติมเลขคู่เท่านั้น`,
+      consecutive:`${R} และตารางย่อยขนาด ${bx} ถ้ามีแถบสีดำอยู่ระหว่าง 2 ช่องใด ตัวเลขในสองช่องนั้นจะต้องมีค่าเรียงกัน แต่ถ้าไม่มีแถบสีดำอยู่ระหว่าง 2 ช่องใดแสดงว่า ตัวเลขในสองช่องนั้นห้ามมีค่าเรียงกัน`,
+      asterisk:`${R} ตารางย่อยขนาด 3×3 และช่องที่แรเงา 9 ช่อง`,
+      thai:`เติมตัวอักษรภาษาไทย ${thaiL} ไม่ให้ซ้ำกันในแต่ละแถว แนวตั้ง แนวนอน และตารางย่อยขนาด ${bx}`,
+      diagjigsaw:`${R} ตารางย่อยที่ตีกรอบด้วยเส้นสีดำหนา และ แนวทแยงมุมทั้งสองเส้น`,
+      windoku:`${R} ตารางย่อยขนาด 3×3 และช่องแรเงาขนาด 3×3`,
+    }[type];
+    return 'วิธีทำ '+(t||eduInstruction(type,N));
+  }
   if(style==='r2'){
     const R = `เติมเลข 1 – ${N} ในแนวตั้ง แนวนอน`;
     switch(type){
@@ -439,6 +455,7 @@ function itemTitle(it, style){
   if(T.rule==='gattai'||T.rule==='gattaidiag')return T.en;
   if(style==='edu')return `${it.size}x${it.size} ${T.en}`;
   if(style==='r1')return `${it.size}x${it.size} ${T.en} Sudoku`;
+  if(style==='hs'&&it.size!==9)return `${it.size}x${it.size} ${T.en} Sudoku`;
   return `${T.en} Sudoku`;
 }
 
@@ -820,7 +837,7 @@ function drawGrid(ctx,P,x,y,S,mode,opt){ // x,y = มุมซ้ายบนข
       let bx,by,bw,bh;
       if(pos[b][0]===pos[a][0]){bw=S*0.11;bh=S*0.44;bx=cx(a)+S-bw/2;by=cy(a)+(S-bh)/2}
       else{bw=S*0.44;bh=S*0.11;bx=cx(a)+(S-bw)/2;by=cy(a)+S-bh/2}
-      ctx.fillStyle='#fff';ctx.fillRect(bx,by,bw,bh);ctx.strokeStyle='#000';ctx.strokeRect(bx,by,bw,bh);
+      ctx.fillStyle='#000';ctx.fillRect(bx,by,bw,bh);
     }
   }
   // X / V
@@ -884,6 +901,7 @@ function footer(ctx,st,W,H,label){
 }
 
 function coverPage(st,puzzles){
+  if(st.style==='hs')return coverPageHS(st,puzzles);
   return {orient:'p',draw(ctx,W,H){
     const M=64;ctx.fillStyle='#000';
     font(ctx,17,true);
@@ -944,6 +962,52 @@ function coverPage(st,puzzles){
   }};
 }
 
+
+/* หน้าปกแบบบันทึกคะแนน ระดับมัธยม (A4 แนวนอน ครึ่งซ้าย) */
+function coverPageHS(st,puzzles){
+  return {orient:'l',draw(ctx,W,H){
+    const M=40,gap=40,colW=(W-2*M-gap)/2,x0=M,cxm=x0+colW/2;
+    ctx.strokeStyle='#000';ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(W/2,M);ctx.lineTo(W/2,H-M);ctx.stroke();
+    ctx.fillStyle='#000';let y=M+12;
+    font(ctx,13.5,true);
+    for(const t of [st.t1,st.t2,st.t3]){if(!t)continue;for(const l of wrap(ctx,t,colW)){textAt(ctx,l,cxm,y,'center');y+=19}}
+    y+=14;font(ctx,12.5,false);
+    const field=(label)=>{const lx=x0+40;textAt(ctx,label,lx,y);dotted(ctx,lx+ctx.measureText(label).width+3,x0+colW-40,y+1);y+=21};
+    field('ชื่อ-สกุล');field('โรงเรียน');
+    y+=6;font(ctx,12.5,true);textAt(ctx,'แบบบันทึกคะแนน (สำหรับคณะกรรมการ)',cxm,y,'center');y+=6;
+    // ตารางคะแนน
+    const n=st.items.length,avail=H-M-y-150,rh=Math.max(12.5,Math.min(17,avail/(n+2)));
+    const cw=[34,colW-34-62-70,62,70],xs=[x0];cw.forEach(w=>xs.push(xs.at(-1)+w));
+    const row=(cells,bold,h)=>{
+      ctx.strokeStyle='#000';ctx.lineWidth=0.7;
+      for(let k=0;k<4;k++)ctx.strokeRect(xs[k],y,cw[k],h);
+      font(ctx,Math.min(11.5,rh*0.72),bold);
+      cells.forEach((c,k)=>{if(c===''||c==null)return;const al=k===1?'left':'center';textAt(ctx,String(c),al==='left'?xs[k]+6:xs[k]+cw[k]/2,y+h/2+4,al)});
+      y+=h;
+    };
+    row(['ข้อที่','รูปแบบ','คะแนนเต็ม','คะแนนที่ได้'],true,rh+2);
+    let total=0;
+    st.items.forEach((it,i)=>{const p=itemPoints(st,i,puzzles&&puzzles[i]);total+=p;row([i+1,itemTitle(it,st.style),p,''],false,rh)});
+    // แถวรวม (ผสานสองช่องแรก)
+    ctx.strokeRect(xs[0],y,cw[0]+cw[1],rh);ctx.strokeRect(xs[2],y,cw[2],rh);ctx.strokeRect(xs[3],y,cw[3],rh);
+    font(ctx,Math.min(11.5,rh*0.72),true);textAt(ctx,'รวม',(xs[0]+xs[2])/2,y+rh/2+4,'center');textAt(ctx,String(total),xs[2]+cw[2]/2,y+rh/2+4,'center');y+=rh;
+    // สรุปคะแนน
+    y+=16;font(ctx,12,true);textAt(ctx,'สรุปคะแนน',x0,y);y+=6;
+    const heads=[['เวลาที่เหลือ'],['คะแนนโบนัส','เวลา'],['คะแนนที่ได้'],['คะแนนรวม','ทั้งหมด'],['อันดับที่']],sw=colW/5,h1=30,h2=24;
+    ctx.lineWidth=0.7;for(let k=0;k<5;k++){ctx.strokeRect(x0+k*sw,y,sw,h1);ctx.strokeRect(x0+k*sw,y+h1,sw,h2)}
+    font(ctx,10.5,true);heads.forEach((h,k)=>h.forEach((t,j)=>textAt(ctx,t,x0+k*sw+sw/2,y+(h.length===1?h1/2+4:11+j*12),'center')));
+    y+=h1+h2+12;
+    // ลงชื่อ
+    const bh=46;ctx.strokeRect(x0,y,colW/2,bh);ctx.strokeRect(x0+colW/2,y,colW/2,bh);
+    font(ctx,11,false);
+    for(const [k,role] of [[0,'ผู้ตรวจ'],[1,'ผู้ทาน']]){
+      const bx=x0+k*colW/2,c=bx+colW/4;
+      textAt(ctx,'ลงชื่อ',bx+12,y+18);dotted(ctx,bx+12+ctx.measureText('ลงชื่อ').width+3,bx+colW/2-12,y+19);
+      font(ctx,11,true);textAt(ctx,role,c,y+36,'center');font(ctx,11,false);
+    }
+    footer(ctx,st,W,H,'ข้อสอบ');
+  }};
+}
 function puzzlePage(st,pair,startIdx){
   return {orient:'l',draw(ctx,W,H){
     const M=40,gap=40,colW=(W-2*M-gap)/2;
@@ -953,7 +1017,7 @@ function puzzlePage(st,pair,startIdx){
       const x0=M+k*(colW+gap);let y=M+18;
       ctx.fillStyle='#000';font(ctx,14.5,true);
       const pts=itemPoints(st,i,P);
-      const head=st.style==='edu'?`${i+1}. ${itemTitle(it,st.style)} (${pts} คะแนน)`:`${i+1}. ${itemTitle(it,st.style)} ${pts} คะแนน`;
+      const head=(st.style==='edu'||st.style==='hs')?`${i+1}. ${itemTitle(it,st.style)} (${pts} คะแนน)`:`${i+1}. ${itemTitle(it,st.style)} ${pts} คะแนน`;
       for(const l of wrap(ctx,head,colW)){textAt(ctx,l,x0,y);y+=21}
       y+=2;
       const txt=instruction(it.type,it.size,st.style,P.orient);
@@ -1067,6 +1131,7 @@ function save(){try{localStorage.setItem('sudokuExamState',JSON.stringify(state)
 function load(){try{const s=JSON.parse(localStorage.getItem('sudokuExamState'));if(s&&s.items&&PRESETS[s.preset]){
   s.items=s.items.filter(it=>TYPES[it.type]);if(!s.items.length)return null;
   s.items.forEach(it=>{if(!TYPES[it.type].sizes.includes(it.size))it.size=TYPES[it.type].sizes.at(-1)});
+  if(s.preset==='r2'&&s.style==='r2')s.style='hs';
   s.boxMode=s.boxMode||PRESETS[s.preset].boxMode;s.round=s.round||'qual';return s}}catch(e){}return null}
 
 function renderForm(){
@@ -1078,7 +1143,9 @@ function renderForm(){
   $('roundNote').textContent=!edu?'':state.round==='final'
     ?'รอบชิงชนะเลิศ: คะแนนเต็มของแต่ละข้อ = จำนวนช่องว่าง (นับตามช่องที่ตอบถูก)'
     :'รอบคัดเลือก: ผิดแม้ 1 ช่อง ข้อนั้นไม่ได้คะแนน (กำหนดคะแนนเต็มในช่องคะแนนของแต่ละข้อ)';
-  $('presetNote').textContent=edu?'โหมดแข่งขัน EduPLOYS (ซูโดกุโปร) — มี 30 รูปแบบตามกติกา ใช้คำชี้แจงและเกณฑ์ตามเอกสารการแข่งขัน':'';
+  $('presetNote').textContent=edu?'โหมดแข่งขัน EduPLOYS (ซูโดกุโปร) — มี 30 รูปแบบตามกติกา ใช้คำชี้แจงและเกณฑ์ตามเอกสารการแข่งขัน'
+    :state.style==='hs'?'งานศิลปหัตถกรรมนักเรียน ระดับมัธยมศึกษา — ใช้ได้ทั้ง ม.ต้น และ ม.ปลาย (เกณฑ์เดียวกัน) แก้ระดับชั้นได้ที่หัวเรื่องบรรทัดที่ 2 · หน้าปกเป็นแบบบันทึกคะแนนแนวนอน'
+    :'งานศิลปหัตถกรรมนักเรียน ระดับประถมศึกษา (ตาราง 6x6 และ 9x9)';
   document.querySelectorAll('#presetSeg button').forEach(b=>b.classList.toggle('on',b.dataset.p===state.preset));
   document.querySelectorAll('#diffSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===state.diff));
   const box=$('items');box.innerHTML='';

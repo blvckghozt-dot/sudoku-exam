@@ -46,6 +46,16 @@
   .credit{margin-top:22px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);text-align:center;line-height:1.6}
   .credit-label{font-size:12px;letter-spacing:.02em}
   .credit-name{font-size:15px;font-weight:700;color:var(--ink)}
+  .btn.support{background:#fff5f2;border-color:#d9775a;color:#b5472a;margin-top:14px}
+  .modal{position:fixed;inset:0;background:rgba(20,20,25,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal.open{display:flex}
+  .modal-box{background:#fff;border-radius:14px;max-width:420px;width:100%;max-height:calc(100vh - 32px);overflow:auto;padding:20px 20px 18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25);position:relative}
+  .modal-box h2{font-size:19px;margin:2px 0 8px}
+  .modal-box p{font-size:14px;line-height:1.65;margin:0 0 12px;color:#333}
+  .modal-box img{width:100%;max-width:330px;border-radius:10px;border:1px solid var(--line)}
+  .modal-close{position:absolute;top:8px;right:10px;border:0;background:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1}
+  .contact{margin-top:12px;font-size:14px;padding-top:10px;border-top:1px solid var(--line)}
+  .contact a{color:var(--accent);font-weight:700;text-decoration:none}
   .pages{display:flex;flex-direction:column;align-items:center;gap:22px}
   .page{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 6px 22px rgba(0,0,0,.08)}
   .page canvas{display:block}
@@ -121,6 +131,7 @@
   <button class="btn ghost" id="printBtn" style="display:none" disabled>สั่งพิมพ์</button>
   <div class="status" id="status"></div>
   <div class="small" id="printNote" style="margin-top:6px">สั่งพิมพ์: เปิดไฟล์ PDF ที่บันทึกไว้ แล้วกด Ctrl+P (Mac: ⌘+P) — หน้าโจทย์เป็นแนวนอน หน้าปกและเฉลยเป็นแนวตั้ง</div>
+  <button class="btn support" id="supportBtn">♥ สนับสนุนผู้พัฒนา</button>
   <div class="credit">
     <div class="credit-label">พัฒนาโดย</div>
     <div class="credit-name">ครูอภิวัฒน์ ปาวงค์</div>
@@ -128,6 +139,16 @@
     <div>จังหวัดมุกดาหาร</div>
   </div>
 </aside>
+<div class="modal" id="supportModal" role="dialog" aria-modal="true" aria-labelledby="supportTitle">
+  <div class="modal-box">
+    <button class="modal-close" id="supportClose" aria-label="ปิด">×</button>
+    <h2 id="supportTitle">สนับสนุนผู้พัฒนา</h2>
+    <p>หวังว่าแอปนี้จะเป็นประโยชน์กับคุณครูและนักเรียนนะครับ<br>หากถูกใจ สามารถสนับสนุนได้ตามความสมัครใจ<br>เพื่อใช้ในการพัฒนาและอัปเดตระบบอย่างต่อเนื่อง</p>
+    <img src="qr-promptpay.jpg" alt="QR พร้อมเพย์ ชื่อบัญชี นายอภิวัฒน์ ปาวงค์">
+    <div class="small" style="margin-top:6px">สแกนจ่ายผ่านแอปธนาคารได้ทุกธนาคาร</div>
+    <div class="contact">ติดต่อ / แจ้งปัญหา / เสนอแนะ<br>Facebook : <a href="https://www.facebook.com/search/top?q=Apiwat%20Pawong" target="_blank" rel="noopener">Apiwat Pawong</a></div>
+  </div>
+</div>
 <main><div class="pages" id="pages"><div class="empty">กด “สร้างข้อสอบ” เพื่อดูตัวอย่าง</div></div></main>
 </div>
 
@@ -1010,6 +1031,11 @@ $('optKey').onchange=()=>{state.key=$('optKey').checked;save();if(puzzles){built
 $('newSeed').onclick=()=>{state.seed=randomSeed();state.items.forEach(i=>i.salt=0);save();renderForm();generate()};
 $('addItem').onclick=()=>{if(state.items.length>=16)return;state.items.push({type:'classic',size:9,points:10,salt:0});save();renderForm()};
 $('genBtn').onclick=generate;
+const openSupport=o=>$('supportModal').classList.toggle('open',o);
+$('supportBtn').onclick=()=>openSupport(true);
+$('supportClose').onclick=()=>openSupport(false);
+$('supportModal').addEventListener('click',e=>{if(e.target.id==='supportModal')openSupport(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')openSupport(false)});
 $('pdfBtn').onclick=()=>exportPDF('all');
 $('examBtn').onclick=()=>exportPDF('exam');
 $('keyBtn').onclick=()=>exportPDF('key');

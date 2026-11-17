@@ -184,6 +184,13 @@
     #viewExam aside{border-right:0;border-bottom:1px solid var(--line)}
     #viewExam main{padding:12px;overflow:visible}
     .play{grid-template-columns:1fr;padding:10px;gap:14px}
+    /* มือถือ: แถบเลือกโหมด + การ์ดปริศนาประจำวันขึ้นก่อนกระดาน */
+    .play>.side,#dailySide,#freeSide{display:contents}
+    .play>.side>*,#dailySide>*,#freeSide>*{order:4}
+    .play>div:first-child{order:3}
+    #modeSeg{order:1;margin-bottom:0}
+    #dailySide>.block:first-child{order:2;margin-bottom:0}
+    .side .block{margin-bottom:0}
     body{height:auto;min-height:100%}
     .view.on{overflow:visible}
   }
@@ -1796,6 +1803,7 @@ $('dStart').onclick=async()=>{
   }
   D.startLocal=Date.now();D.leaves=0;D.hidden=false;G.val.fill(0);G.notes.fill(0);
   hideCover();updateDailyUI();saveDaily();drawBoard();$('board').focus({preventScroll:true});
+  if(window.innerWidth<=900)$('gTitle').closest('.board-card').scrollIntoView({behavior:'smooth',block:'start'});
   $('dStart').disabled=false;$('dStart').textContent='เริ่มปริศนาวันนี้';
 };
 

@@ -217,7 +217,7 @@
     <button data-v="play" class="on"><span class="kj">遊</span>เล่นเกม</button>
     <button data-v="exam"><span class="kj">作</span>สร้างข้อสอบ</button>
   </nav>
-  <div class="hdr-right"><button class="pill" id="supportBtn">☕ <span class="long">เลี้ยงกาแฟผู้พัฒนา</span><span class="short">เลี้ยงกาแฟ</span></button></div>
+  <div class="hdr-right"><button class="pill" id="langBtn" style="color:var(--ai)">EN</button><button class="pill" id="supportBtn">☕ <span class="long">เลี้ยงกาแฟผู้พัฒนา</span><span class="short">เลี้ยงกาแฟ</span></button></div>
 </header>
 
 <!-- ========== เมนู 1: เล่นเกม ========== -->
@@ -1204,6 +1204,123 @@ async function makePDF(rendered){
   return new Blob(parts,{type:'application/pdf'});
 }
 
+
+/* ================== ภาษา (ไทย / English) ================== */
+let LANG=(()=>{try{const v=localStorage.getItem('renmaLang');if(v==='th'||v==='en')return v}catch(e){}return /^th/i.test(navigator.language||'th')?'th':'en'})();
+function L(th,en){return LANG==='en'?en:th}
+const TEXT_PAIRS=[
+ ['เล่นเกม','Play'],['สร้างข้อสอบ','Exam maker'],['เลี้ยงกาแฟผู้พัฒนา','Buy me a coffee'],['เลี้ยงกาแฟ','Coffee'],
+ ['หยุด','Pause'],['หยุดเวลาชั่วคราว','Paused'],['เล่นต่อ','Resume'],['กระดานซูโดกุ','Sudoku board'],
+ ['✎ โน้ต','✎ Notes'],['ลบ','Erase'],['↶ ย้อน','↶ Undo'],['ตรวจ','Check'],
+ ['โหมดจดโน้ต (N)','Notes mode (N)'],['ลบ (Backspace)','Erase (Backspace)'],['ย้อนกลับ (Ctrl+Z)','Undo (Ctrl+Z)'],['ตรวจช่องที่ผิด','Check wrong cells'],
+ ['โหมดอิสระ','Free play'],['🗓 ปริศนาประจำวัน','🗓 Daily puzzle'],['ปริศนาประจำวัน','Daily puzzle'],
+ ['ชื่อที่จะแสดงในตารางอันดับ','Name shown on the leaderboard'],['เช่น ด.ญ.มะลิ ป.6/1','e.g. Mali, Grade 6/1'],
+ ['เริ่มปริศนาวันนี้','Start today’s puzzle'],
+ ['ทุกคนได้โจทย์เดียวกัน เปลี่ยนทุกเที่ยงคืน · ไม่มีคำใบ้และเฉลย · เวลาจับจากเซิร์ฟเวอร์ตั้งแต่กดเริ่มจนเติมครบ หยุดเวลาไม่ได้ · ถ้าสลับไปหน้าจออื่น กระดานจะถูกซ่อนและนับจำนวนครั้งที่ออกจากจอ',
+  'Everyone gets the same puzzle, new every midnight (Thai time) · no hints or solution · time is measured by the server from Start until the board is full, and cannot be paused · if you switch away, the board is hidden and the number of times you left is counted'],
+ ['กำลังแข่ง — เติมให้ครบทุกช่อง ระบบจะส่งคำตอบให้อัตโนมัติ','In progress — fill every cell and your answer is sent automatically'],
+ ['แชร์','Share'],['คัดลอกข้อความ','Copy text'],['บันทึกรูปผลงาน','Save result image'],
+ ['ตารางอันดับ','Leaderboard'],['วันนี้','Today'],['เมื่อวาน','Yesterday'],['รีเฟรชอันดับ','Refresh'],
+ ['เลือกโหมดเกม','Choose a mode'],['รูปแบบ','Variant'],['ขนาด','Size'],['กรอบย่อย','Box shape'],['สุ่ม','Random'],['แนวนอน','Horizontal'],['แนวตั้ง','Vertical'],
+ ['ระดับความยาก','Difficulty'],['ง่าย','Easy'],['ปานกลาง','Medium'],['ยาก','Hard'],['เริ่มกระดานใหม่','New board'],
+ ['คำใบ้และเฉลย','Hints & solution'],['คำใบ้ (ขั้นที่ 1)','Hint (step 1)'],
+ ['คำใบ้จะค่อย ๆ บอกทีละขั้น: ชี้ช่อง → บอกตัวเลือก → เติมคำตอบ','Hints come step by step: point to a cell → show its options → fill in the answer'],
+ ['ดูเฉลยทั้งกระดาน','Show full solution'],['ประวัติการเล่น','History'],['ล้างประวัติ','Clear history'],
+ ['พัฒนาโดย','Developed by'],['ครูอภิวัฒน์ ปาวงค์','Kru Apiwat Pawong'],
+ ['โรงเรียนบ้านหนองเอี่ยนดง “ราษฎร์สงเคราะห์” จังหวัดมุกดาหาร','Ban Nong Ian Dong (Rat Songkhro) School, Mukdahan, Thailand'],
+ ['โรงเรียนบ้านหนองเอี่ยนดง “ราษฎร์สงเคราะห์”','Ban Nong Ian Dong (Rat Songkhro) School'],['จังหวัดมุกดาหาร','Mukdahan, Thailand'],
+ ['สร้างชุดข้อสอบซูโดกุ','Sudoku exam maker'],
+ ['สร้างชุดปริศนาตามแบบฟอร์มการแข่งขัน พร้อมเฉลย บันทึกเป็น PDF เพื่อสั่งพิมพ์','Build puzzle sets in official competition formats, with answer keys, saved as printable PDF'],
+ ['แบบฟอร์ม','Form'],['ศิลปหัตถกรรม · ประถม','Arts & Crafts · Primary'],['ศิลปหัตถกรรม · มัธยม','Arts & Crafts · Secondary'],
+ ['หัวเรื่อง บรรทัดที่ 1','Title line 1'],['หัวเรื่อง บรรทัดที่ 2','Title line 2'],['หัวเรื่อง บรรทัดที่ 3','Title line 3'],['หัวเรื่องหน้าเฉลย','Answer key title'],
+ ['รายการข้อ','Puzzles'],['+ เพิ่มข้อ','+ Add puzzle'],['↻ = สุ่มเฉพาะข้อนั้นใหม่ · ✕ = ลบข้อ','↻ = re-roll that puzzle · ✕ = remove'],
+ ['ตั้งค่า','Settings'],['กรอบย่อย 6x6 / 8x8','Box shape 6x6 / 8x8'],['แนวนอน (2x3 / 2x4)','Horizontal (2x3 / 2x4)'],['แนวตั้ง (3x2 / 4x2)','Vertical (3x2 / 4x2)'],['สุ่มแต่ละข้อ','Random per puzzle'],
+ ['รอบการแข่งขัน','Round'],['รอบคัดเลือก','Qualifying'],['รอบชิงชนะเลิศ','Final'],['ขนาดกระดาษ','Paper size'],['รหัสชุดข้อสอบ','Set code'],
+ ['สุ่มชุดใหม่ทั้งหมด','New random set'],['ใช้รหัสชุดเดิม = ได้ข้อสอบชุดเดิมทุกครั้ง','Same set code = same puzzles every time'],
+ ['หน้าปก (ชื่อ โรงเรียน ตารางคะแนน)','Cover page (name, school, score table)'],['แสดงเฉลยในหน้าตัวอย่าง','Show answer key in preview'],
+ ['บันทึก PDF (ข้อสอบ + เฉลย)','Save PDF (exam + key)'],['บันทึก PDF (เฉพาะข้อสอบ)','Save PDF (exam only)'],['บันทึก PDF (เฉพาะเฉลย)','Save PDF (key only)'],['สั่งพิมพ์','Print'],
+ ['สั่งพิมพ์: เปิดไฟล์ PDF ที่บันทึกไว้ แล้วกด Ctrl+P (Mac: ⌘+P) — หน้าโจทย์เป็นแนวนอน หน้าปกและเฉลยเป็นแนวตั้ง','To print: open the saved PDF and press Ctrl+P (Mac: ⌘+P) — puzzle pages are landscape, cover and key are portrait'],
+ ['กด “สร้างข้อสอบ” เพื่อดูตัวอย่าง','Press “Generate” to see a preview'],
+ ['ปิด','Close'],['☕ เลี้ยงกาแฟผู้พัฒนาสักแก้ว','☕ Buy the developer a coffee'],
+ ['หวังว่าแอปนี้จะเป็นประโยชน์กับคุณครูและนักเรียนนะครับ 🙏','I hope this app helps teachers and students 🙏'],
+ ['ถ้าถูกใจ ฝากเลี้ยงกาแฟสักแก้วตามความสมัครใจ','If you enjoy it, a coffee (any amount, totally optional)'],
+ ['ให้ผู้พัฒนามีแรงตาสว่าง นั่งอัปเดตแอปต่อได้ทั้งคืน','keeps the developer awake to keep improving the app'],
+ ['สแกนจ่ายผ่านแอปธนาคารได้ทุกธนาคาร','Scan with any Thai banking app (PromptPay)'],['ติดต่อ / แจ้งปัญหา / เสนอแนะ','Contact / report a problem / suggestions'],
+];
+const TH2EN=new Map(TEXT_PAIRS),EN2TH=new Map(TEXT_PAIRS.map(([a,b])=>[b,a]));
+// ปุ่ม "สร้างข้อสอบ" ในเมนูสร้างข้อสอบ ใช้คำต่างจากแท็บ
+const ID_TEXT={genBtn:['สร้างข้อสอบ','Generate']};
+function swapText(str){
+  const k=str.trim();if(!k)return str;
+  const m=(LANG==='en'?TH2EN:EN2TH).get(k);
+  return m===undefined?str:str.replace(k,m);
+}
+function applyLang(){
+  document.documentElement.lang=LANG==='en'?'en':'th';
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>{
+    const p=n.parentElement;if(!p||p.closest('script,style,#pages,#items,#hist,#dBoard,#stats,#status,#hintBox,#gTitle,#gMeta,#gRule,#dDate,#dType,#dRank,#dTime,#presetNote,#roundNote'))return NodeFilter.FILTER_REJECT;
+    return NodeFilter.FILTER_ACCEPT}});
+  const nodes=[];while(w.nextNode())nodes.push(w.currentNode);
+  for(const n of nodes){const v=swapText(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v}
+  for(const el of document.querySelectorAll('[placeholder],[title],[aria-label],img[alt]')){
+    for(const a of ['placeholder','title','aria-label']){const v=el.getAttribute(a);if(v){const t=swapText(v);if(t!==v)el.setAttribute(a,t)}}
+  }
+  for(const [id,[th,en]] of Object.entries(ID_TEXT)){const el=$(id);if(el&&!el.disabled)el.textContent=L(th,en)}
+  $('langBtn').textContent=LANG==='en'?'ไทย':'EN';
+  $('langBtn').title=LANG==='en'?'เปลี่ยนเป็นภาษาไทย':'Switch to English';
+}
+function setLang(l){
+  LANG=l;try{localStorage.setItem('renmaLang',l)}catch(e){}
+  applyLang();
+  // ข้อความที่สร้างจากโค้ด
+  try{renderPlayForm();renderHistory();updateHintUI()}catch(e){}
+  try{if(G.P){if(G.mode==='daily'){dailyTexts();updateDailyUI();loadBoard();
+      if($('pauseCover').classList.contains('on')){if(D.cover==='start')showCover(L('กด “เริ่มปริศนาวันนี้”<br>เพื่อเปิดโจทย์และเริ่มจับเวลา','Press “Start today’s puzzle”<br>to reveal the board and start the clock'),null);else if(D.cover)showCover(L('ซ่อนกระดานไว้ — เวลายังเดินต่อ','The board is hidden — the clock keeps running'),L('กลับมาเล่น','Back to the game'))}}
+    else{gameTexts();updateBanner()}}}catch(e){console.error(e)}
+  try{renderForm()}catch(e){}
+  if(!$('pNew').disabled)$('pNew').textContent=L('เริ่มกระดานใหม่','New board');
+  if($('printNote').dataset.alt)$('printNote').textContent=L('สั่งพิมพ์ได้ทันทีด้วยปุ่ม “สั่งพิมพ์” หรือเปิดไฟล์ PDF ที่บันทึกไว้แล้วกด Ctrl+P','Print right away with the “Print” button, or open the saved PDF and press Ctrl+P');
+  $('gPause').textContent=G.paused?L('เล่นต่อ','Resume'):L('หยุด','Pause');
+}
+function gameTexts(){
+  const c=G.cfg;if(!c)return;
+  $('gTitle').textContent=modeLabel(c);
+  $('gMeta').textContent=`${DIFF_TH[c.diff]} · ${L('รหัส','code')} ${c.seed}`;
+  $('gRule').textContent=ruleText(c.type,c.size,G.P.orient);
+}
+function dailyTexts(){
+  const c=dailyCfg(D.day);
+  $('gTitle').textContent=L('ปริศนาประจำวัน','Daily puzzle')+' · '+modeLabel(c);
+  $('gMeta').textContent=shortThai(D.day);
+  $('dDate').textContent=thaiDate(D.day);
+  $('dType').textContent=L(`${modeLabel(c)} · ระดับ${DIFF_TH[c.diff]} · ทุกคนได้โจทย์เดียวกัน`,`${modeLabel(c)} · ${DIFF_TH[c.diff]} · same puzzle for everyone`);
+  $('gRule').textContent=ruleText(c.type,c.size,'h');
+}
+/* กติกาภาษาอังกฤษ (หน้าเล่นเกม) — เอกสาร PDF ยังใช้ข้อความภาษาไทยตามแบบฟอร์ม */
+function ruleText(type,N,orient){
+  if(LANG!=='en')return instruction(type,N,'edu',orient);
+  const T=TYPES[type],rule=T.rule;
+  const R=T.sym==='alpha'?`the letters A–${SYMBOLS.alpha[N]}`:T.sym==='thai'?`the Thai letters ${SYMBOLS.thai.slice(1,N+1).join(' ')}`:`the numbers 1–${N}`;
+  const base=`Fill in ${R} so that each appears exactly once in every row, every column`;
+  switch(rule){
+    case 'classic':return `${base} and every box.`;
+    case 'diagonal':return `${base}, every box and both main diagonals.`;
+    case 'jigsaw':return `${base} and every irregular region outlined in bold.`;
+    case 'diagjigsaw':return `${base}, every irregular region outlined in bold and both main diagonals.`;
+    case 'asterisk':case 'centerdot':case 'girandola':return `${base}, every box and the 9 shaded cells.`;
+    case 'windoku':return `${base}, every box and each of the 4 shaded windows.`;
+    case 'evenodd':return `${base} and every box. Shaded cells must contain even numbers.`;
+    case 'consecutive':return `${base} and every box. A bar between two cells means their numbers differ by 1; cells without a bar must NOT differ by 1 (1 and ${N} are not consecutive).`;
+    case 'killer':return `${base} and every box. The numbers in each dashed cage add up to the small number in its corner, with no repeats inside a cage.`;
+    case 'xv':return `${base} and every box. X means the two cells sum to 10, V means they sum to 5. Neighbouring cells without an X or V must not sum to 10 or 5.`;
+    case 'rossini':return `${base} and every box. An arrow outside the grid means the 3 nearest cells increase from tail to head. With no arrow, those 3 cells are neither increasing nor decreasing.`;
+    case 'greater':return `${base} and every box. Every inequality sign between cells must hold — the point faces the smaller number.`;
+    case 'gattai':return 'Two 9×9 Classic grids overlap in the shaded box. Each grid follows normal Sudoku rules: 1–9 once in every row, column and box.';
+    case 'gattaidiag':return 'A Classic grid (top-left) and a Diagonal grid (bottom-right) overlap in the shaded box. Both follow normal rules, and the Diagonal grid also has no repeats on its two diagonals.';
+  }
+  return base+'.';
+}
+
 /* ================== สถานะ / UI ================== */
 const $=id=>document.getElementById(id);
 let state=null, puzzles=null, built=null;
@@ -1228,21 +1345,21 @@ function renderForm(){
   const edu=state.style==='edu';
   $('roundWrap').style.visibility=edu?'visible':'hidden';
   $('roundNote').textContent=!edu?'':state.round==='final'
-    ?'รอบชิงชนะเลิศ: คะแนนเต็มของแต่ละข้อ = จำนวนช่องว่าง (นับตามช่องที่ตอบถูก)'
-    :'รอบคัดเลือก: ผิดแม้ 1 ช่อง ข้อนั้นไม่ได้คะแนน (กำหนดคะแนนเต็มในช่องคะแนนของแต่ละข้อ)';
-  $('presetNote').textContent=edu?'โหมดแข่งขัน EduPLOYS (ซูโดกุโปร) — มี 30 รูปแบบตามกติกา ใช้คำชี้แจงและเกณฑ์ตามเอกสารการแข่งขัน'
-    :state.style==='hs'?'งานศิลปหัตถกรรมนักเรียน ระดับมัธยมศึกษา — ใช้ได้ทั้ง ม.ต้น และ ม.ปลาย (เกณฑ์เดียวกัน) แก้ระดับชั้นได้ที่หัวเรื่องบรรทัดที่ 2 · หน้าปกเป็นแบบบันทึกคะแนน'
-    :'งานศิลปหัตถกรรมนักเรียน ระดับประถมศึกษา (ตาราง 6x6 และ 9x9)';
+    ?L('รอบชิงชนะเลิศ: คะแนนเต็มของแต่ละข้อ = จำนวนช่องว่าง (นับตามช่องที่ตอบถูก)','Final round: full marks per puzzle = number of blank cells (scored per correct cell)')
+    :L('รอบคัดเลือก: ผิดแม้ 1 ช่อง ข้อนั้นไม่ได้คะแนน (กำหนดคะแนนเต็มในช่องคะแนนของแต่ละข้อ)','Qualifying round: one wrong cell scores 0 for that puzzle (set full marks in each item\'s points box)');
+  $('presetNote').textContent=edu?L('โหมดแข่งขัน EduPLOYS (ซูโดกุโปร) — มี 30 รูปแบบตามกติกา ใช้คำชี้แจงและเกณฑ์ตามเอกสารการแข่งขัน','EduPLOYS (Sudoku Pro) competition mode — all 30 official variants. Printed sheets use the official Thai instructions.')
+    :state.style==='hs'?L('งานศิลปหัตถกรรมนักเรียน ระดับมัธยมศึกษา — ใช้ได้ทั้ง ม.ต้น และ ม.ปลาย (เกณฑ์เดียวกัน) แก้ระดับชั้นได้ที่หัวเรื่องบรรทัดที่ 2 · หน้าปกเป็นแบบบันทึกคะแนน','Thai Student Arts & Crafts Fair, secondary level (lower & upper secondary use the same criteria). Edit the grade in title line 2. Printed sheets are in Thai.')
+    :L('งานศิลปหัตถกรรมนักเรียน ระดับประถมศึกษา (ตาราง 6x6 และ 9x9)','Thai Student Arts & Crafts Fair, primary level (6x6 and 9x9). Printed sheets are in Thai.');
   document.querySelectorAll('#presetSeg button').forEach(b=>b.classList.toggle('on',b.dataset.p===state.preset));
   document.querySelectorAll('#diffSeg button').forEach(b=>b.classList.toggle('on',b.dataset.d===state.diff));
   const box=$('items');box.innerHTML='';
   state.items.forEach((it,i)=>{
     const d=document.createElement('div');d.className='item';
-    const opts=Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${k===it.type?' selected':''}>${v.th}</option>`).join('');
+    const opts=Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${k===it.type?' selected':''}>${L(v.th,v.en)}</option>`).join('');
     const sizes=TYPES[it.type].sizes.map(s=>`<option value="${s}"${s===it.size?' selected':''}>${s}x${s}</option>`).join('');
     const finalPts=edu&&state.round==='final';
     d.innerHTML=`<span class="n">${i+1}.</span><select data-k="type">${opts}</select><select data-k="size">${sizes}</select>
-      <input type="number" min="0" data-k="points" value="${finalPts&&puzzles&&puzzles[i]?puzzles[i].blanks:it.points}" title="${finalPts?'คะแนนเต็ม = จำนวนช่องว่าง':'คะแนน'}"${finalPts?' disabled':''}><button class="icon" data-a="re" title="สุ่มข้อนี้ใหม่">↻</button><button class="icon" data-a="del" title="ลบข้อ">✕</button>`;
+      <input type="number" min="0" data-k="points" value="${finalPts&&puzzles&&puzzles[i]?puzzles[i].blanks:it.points}" title="${finalPts?L('คะแนนเต็ม = จำนวนช่องว่าง','Full marks = blank cells'):L('คะแนน','Points')}"${finalPts?' disabled':''}><button class="icon" data-a="re" title="${L('สุ่มข้อนี้ใหม่','Re-roll this puzzle')}">↻</button><button class="icon" data-a="del" title="${L('ลบข้อ','Remove')}">✕</button>`;
     d.querySelectorAll('[data-k]').forEach(el=>el.addEventListener('change',()=>{
       const k=el.dataset.k;
       if(k==='type'){it.type=el.value;if(!TYPES[it.type].sizes.includes(it.size))it.size=TYPES[it.type].sizes.at(-1)}
@@ -1270,15 +1387,15 @@ async function generate(){
     const out=[];
     for(let i=0;i<state.items.length;i++){
       const it=state.items[i];
-      status(`กำลังสร้างข้อ ${i+1}/${state.items.length} …`);await tick();
+      status(L(`กำลังสร้างข้อ ${i+1}/${state.items.length} …`,`Generating puzzle ${i+1}/${state.items.length} …`));await tick();
       const seed=hashStr(`${state.seed}|${i}|${it.type}|${it.size}|${state.diff}|${it.salt||0}|${state.boxMode}`);
       out.push(generatePuzzle(it.type,it.size,state.diff,seed,state.boxMode));
     }
     puzzles=out;built=JSON.stringify(state);
     renderForm();preview();
-    status(`สร้างเสร็จ ${out.length} ข้อ (รหัสชุด ${state.seed}) — ตรวจแล้วทุกข้อมีคำตอบเดียว`,'ok');
+    status(L(`สร้างเสร็จ ${out.length} ข้อ (รหัสชุด ${state.seed}) — ตรวจแล้วทุกข้อมีคำตอบเดียว`,`Done: ${out.length} puzzles (set code ${state.seed}) — each verified to have a unique solution`),'ok');
     $('pdfBtn').disabled=false;$('examBtn').disabled=false;$('keyBtn').disabled=false;$('printBtn').disabled=false;
-  }catch(e){console.error(e);status('เกิดข้อผิดพลาด: '+e.message,'err')}
+  }catch(e){console.error(e);status(L('เกิดข้อผิดพลาด: ','Error: ')+e.message,'err')}
   $('genBtn').disabled=false;
 }
 
@@ -1294,7 +1411,7 @@ function preview(){
     cv.style.width=(W*base)+'px';
     const wrap=document.createElement('div');
     const d=document.createElement('div');d.className='page '+(pg.orient==='l'?'l':'p');d.appendChild(cv);
-    const cap=document.createElement('div');cap.className='pcap';cap.textContent=`หน้า ${i+1}/${pages.length}`;
+    const cap=document.createElement('div');cap.className='pcap';cap.textContent=L(`หน้า ${i+1}/${pages.length}`,`Page ${i+1}/${pages.length}`);
     wrap.appendChild(d);wrap.appendChild(cap);box.appendChild(wrap);
   });
 }
@@ -1320,23 +1437,23 @@ async function buildPDFBlob(which){
   const pages=buildPages(state,puzzles,which);
   const rendered=[];
   for(let i=0;i<pages.length;i++){
-    status(`กำลังสร้าง PDF หน้า ${i+1}/${pages.length} …`);await tick();
+    status(L(`กำลังสร้าง PDF หน้า ${i+1}/${pages.length} …`,`Building PDF page ${i+1}/${pages.length} …`));await tick();
     rendered.push(renderPage(pages[i],state.paper,200/72));
   }
   return makePDF(rendered);
 }
 async function exportPDF(which){
   if(!puzzles)return;
-  if(built!==JSON.stringify(state)){status('มีการแก้ไขการตั้งค่า กด “สร้างข้อสอบ” ใหม่ก่อนบันทึก','err');return}
+  if(built!==JSON.stringify(state)){status(L('มีการแก้ไขการตั้งค่า กด “สร้างข้อสอบ” ใหม่ก่อนบันทึก','Settings changed — press “Generate” again before saving'),'err');return}
   const btn=which==='key'?$('keyBtn'):which==='exam'?$('examBtn'):$('pdfBtn');btn.disabled=true;
   try{
     const blob=await buildPDFBlob(which);
     const safe=s=>s.replace(/[\\/:*?"<>|]/g,'').trim();
     const name=(which==='key'?safe(state.t4||'เฉลยซูโดกุ'):safe(state.t1||'ซูโดกุ')+(which==='exam'?' ข้อสอบ':' ข้อสอบและเฉลย'))+` (${state.seed}).pdf`;
-    status('กำลังบันทึกไฟล์ …');
+    status(L('กำลังบันทึกไฟล์ …','Saving file …'));
     const r=await saveBlob(name,blob);
-    status(r==='declined'?'ยกเลิกการบันทึก':r==='busy'?'มีหน้าต่างบันทึกเปิดอยู่ ลองอีกครั้ง':`บันทึก ${name} แล้ว (${(blob.size/1024/1024).toFixed(1)} MB)`,r==='declined'||r==='busy'?'err':'ok');
-  }catch(e){console.error(e);status('บันทึก PDF ไม่สำเร็จ: '+e.message,'err')}
+    status(r==='declined'?L('ยกเลิกการบันทึก','Save cancelled'):r==='busy'?L('มีหน้าต่างบันทึกเปิดอยู่ ลองอีกครั้ง','A save dialog is already open — try again'):L(`บันทึก ${name} แล้ว`,`Saved ${name}`)+` (${(blob.size/1024/1024).toFixed(1)} MB)`,r==='declined'||r==='busy'?'err':'ok');
+  }catch(e){console.error(e);status(L('บันทึก PDF ไม่สำเร็จ: ','Could not save PDF: ')+e.message,'err')}
   btn.disabled=false;
 }
 
@@ -1367,7 +1484,7 @@ $('pdfBtn').onclick=()=>exportPDF('all');
 $('examBtn').onclick=()=>exportPDF('exam');
 $('keyBtn').onclick=()=>exportPDF('key');
 $('printBtn').onclick=()=>window.print();
-if(window.top===window.self){$('printBtn').style.display='block';$('printNote').textContent='สั่งพิมพ์ได้ทันทีด้วยปุ่ม “สั่งพิมพ์” หรือเปิดไฟล์ PDF ที่บันทึกไว้แล้วกด Ctrl+P'}
+if(window.top===window.self){$('printBtn').style.display='block';$('printNote').dataset.alt='1';$('printNote').textContent=L('สั่งพิมพ์ได้ทันทีด้วยปุ่ม “สั่งพิมพ์” หรือเปิดไฟล์ PDF ที่บันทึกไว้แล้วกด Ctrl+P','Print right away with the “Print” button, or open the saved PDF and press Ctrl+P')}
 
 state=load()||defaultState('r1');
 renderForm();
@@ -1376,7 +1493,7 @@ window.__test={generatePuzzle,solve,buildModel,buildPDFBlob,get state(){return s
 
 /* ================== เมนู 1: เล่นเกม ================== */
 const PLAY_KEY='renmaGame',HIST_KEY='renmaHistory',PREF_KEY='renmaPlayPref';
-const DIFF_TH={easy:'ง่าย',medium:'ปานกลาง',hard:'ยาก'};
+const DIFF_TH={get easy(){return L('ง่าย','Easy')},get medium(){return L('ปานกลาง','Medium')},get hard(){return L('ยาก','Hard')}};
 const G={mode:'free',P:null,cfg:null,val:null,notes:null,wrong:null,sel:-1,noteMode:false,undo:[],secs:0,paused:false,done:false,revealed:false,hints:0,hint:{level:0,cell:-1},L:null};
 function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
@@ -1388,9 +1505,9 @@ const playActive=()=>$('viewPlay').classList.contains('on');
 let pref=lsGet(PREF_KEY,{type:'classic',size:9,diff:'easy',box:'random'});
 if(!TYPES[pref.type])pref.type='classic';
 function renderPlayForm(){
-  $('pType').innerHTML=Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${k===pref.type?' selected':''}>${v.th}</option>`).join('');
+  $('pType').innerHTML=Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${k===pref.type?' selected':''}>${L(v.th,v.en)}</option>`).join('');
   const sizes=TYPES[pref.type].sizes;if(!sizes.includes(pref.size))pref.size=sizes.at(-1);
-  $('pSize').innerHTML=sizes.map(s=>`<option value="${s}"${s===pref.size?' selected':''}>${s}x${s}${(TYPES[pref.type].rule||'').startsWith('gattai')?' (2 ตาราง)':''}</option>`).join('');
+  $('pSize').innerHTML=sizes.map(s=>`<option value="${s}"${s===pref.size?' selected':''}>${s}x${s}${(TYPES[pref.type].rule||'').startsWith('gattai')?L(' (2 ตาราง)',' (2 grids)'):''}</option>`).join('');
   $('pBox').value=pref.box;$('pBox').disabled=pref.size===9;
   document.querySelectorAll('#pDiff button').forEach(b=>b.classList.toggle('on',b.dataset.d===pref.diff));
 }
@@ -1410,18 +1527,18 @@ function startGame(cfg,saved){
     Object.assign(G,{secs:saved.secs||0,hints:saved.hints||0,done:!!saved.done,revealed:!!saved.revealed});
   }
   $('gTitle').textContent=modeLabel(cfg);
-  $('gMeta').textContent=`${DIFF_TH[cfg.diff]} · รหัส ${cfg.seed}`;
-  $('gRule').textContent=instruction(cfg.type,cfg.size,'edu',P.orient);
-  $('hintBox').textContent='คำใบ้จะค่อย ๆ บอกทีละขั้น: ชี้ช่อง → บอกตัวเลือก → เติมคำตอบ';
-  $('pauseCover').classList.remove('on');$('gPause').textContent='หยุด';
+  $('gMeta').textContent=`${DIFF_TH[cfg.diff]} · ${L('รหัส','code')} ${cfg.seed}`;
+  $('gRule').textContent=ruleText(cfg.type,cfg.size,P.orient);
+  $('hintBox').textContent=L('คำใบ้จะค่อย ๆ บอกทีละขั้น: ชี้ช่อง → บอกตัวเลือก → เติมคำตอบ','Hints come step by step: point to a cell → show its options → fill in the answer');
+  $('pauseCover').classList.remove('on');$('gPause').textContent=L('หยุด','Pause');
   buildKeypad();updateHintUI();updateBanner();layoutBoard();saveGame();
 }
 function newGame(){
-  $('pNew').disabled=true;$('pNew').textContent='กำลังสร้างกระดาน …';
+  $('pNew').disabled=true;$('pNew').textContent=L('กำลังสร้างกระดาน …','Building board …');
   setTimeout(()=>{
     try{startGame({type:pref.type,size:pref.size,diff:pref.diff,box:pref.box,seed:randomSeed()})}
-    catch(e){console.error(e);$('hintBox').textContent='สร้างกระดานไม่สำเร็จ ลองกดอีกครั้ง'}
-    $('pNew').disabled=false;$('pNew').textContent='เริ่มกระดานใหม่';
+    catch(e){console.error(e);$('hintBox').textContent=L('สร้างกระดานไม่สำเร็จ ลองกดอีกครั้ง','Could not build the board — please try again')}
+    $('pNew').disabled=false;$('pNew').textContent=L('เริ่มกระดานใหม่','New board');
   },20);
 }
 function saveGame(){
@@ -1568,7 +1685,7 @@ $('tCheck').onclick=()=>{
   if(!G.P||G.done||G.revealed||G.mode==='daily')return;
   let k=0;for(let i=0;i<G.P.model.n;i++)if(G.val[i]&&G.val[i]!==G.P.sol[i]){G.wrong[i]=1;k++}
   G.hints++;
-  $('hintBox').textContent=k?`มี ${k} ช่องที่ยังไม่ถูกต้อง (ขีดเส้นใต้สีแดง) — การตรวจนับเป็นการใช้คำใบ้ 1 ครั้ง`:'ช่องที่เติมไว้ถูกต้องทั้งหมด เยี่ยมมาก — การตรวจนับเป็นการใช้คำใบ้ 1 ครั้ง';
+  $('hintBox').textContent=k?L(`มี ${k} ช่องที่ยังไม่ถูกต้อง (ขีดเส้นใต้สีแดง) — การตรวจนับเป็นการใช้คำใบ้ 1 ครั้ง`,`${k} cell(s) are wrong (underlined in red) — checking counts as 1 hint`):L('ช่องที่เติมไว้ถูกต้องทั้งหมด เยี่ยมมาก — การตรวจนับเป็นการใช้คำใบ้ 1 ครั้ง','Everything you filled in is correct — checking counts as 1 hint');
   drawBoard();saveGame();
 };
 
@@ -1592,7 +1709,7 @@ function pickHintCell(){
 function updateHintUI(){
   const lv=G.hint.level;
   document.querySelectorAll('#hintSteps span').forEach((s,i)=>s.classList.toggle('on',i<lv));
-  $('pHint').textContent=`คำใบ้ (ขั้นที่ ${Math.min(lv+1,3)})`;
+  $('pHint').textContent=L(`คำใบ้ (ขั้นที่ ${Math.min(lv+1,3)})`,`Hint (step ${Math.min(lv+1,3)})`);
   $('pHint').disabled=!G.P||G.done||G.revealed;
 }
 function giveHint(){
@@ -1600,22 +1717,22 @@ function giveHint(){
   if(G.paused)resumeGame();
   const P=G.P,sy=SYMBOLS[P.sym];
   let wrongs=0;for(let i=0;i<P.model.n;i++)if(G.val[i]&&G.val[i]!==P.sol[i]&&!G.wrong[i]){G.wrong[i]=1;wrongs++}
-  if(wrongs){G.hints++;$('hintBox').textContent=`ก่อนอื่น มี ${wrongs} ช่องที่เติมไม่ถูกต้อง (ขีดเส้นใต้สีแดง) ลองแก้ไขดูก่อน แล้วกดคำใบ้อีกครั้ง`;drawBoard();saveGame();return}
+  if(wrongs){G.hints++;$('hintBox').textContent=L(`ก่อนอื่น มี ${wrongs} ช่องที่เติมไม่ถูกต้อง (ขีดเส้นใต้สีแดง) ลองแก้ไขดูก่อน แล้วกดคำใบ้อีกครั้ง`,`First: ${wrongs} cell(s) are wrong (underlined in red). Fix them, then press Hint again.`);drawBoard();saveGame();return}
   const h=G.hint;
   if(h.cell<0||G.val[h.cell]===P.sol[h.cell]){const p=pickHintCell();if(p.cell<0)return;G.hint={level:0,cell:p.cell,pop:p.pop,mask:p.mask}}
   const H=G.hint;H.level++;G.hints++;G.sel=H.cell;
   const vals=[];for(let v=1;v<=P.N;v++)if(H.mask>>v&1)vals.push(sy[v]);
   if(H.level===1){
     $('hintBox').innerHTML=H.pop===1
-      ?'<b>ขั้นที่ 1:</b> ดูช่องที่ไฮไลต์สีแดง — ช่องนี้หาคำตอบได้แน่นอนจากตัวเลขที่มีอยู่ ลองไล่ดูแถว คอลัมน์ กรอบย่อย และเงื่อนไขพิเศษของช่องนี้'
-      :'<b>ขั้นที่ 1:</b> ดูช่องที่ไฮไลต์สีแดง — ตอนนี้ช่องนี้มีตัวเลือกน้อยที่สุดบนกระดาน ลองตัดตัวเลือกที่เป็นไปไม่ได้ออก';
+      ?L('<b>ขั้นที่ 1:</b> ดูช่องที่ไฮไลต์สีแดง — ช่องนี้หาคำตอบได้แน่นอนจากตัวเลขที่มีอยู่ ลองไล่ดูแถว คอลัมน์ กรอบย่อย และเงื่อนไขพิเศษของช่องนี้','<b>Step 1:</b> Look at the red cell — it can be solved from what is already on the board. Check its row, column, box and any special rule.')
+      :L('<b>ขั้นที่ 1:</b> ดูช่องที่ไฮไลต์สีแดง — ตอนนี้ช่องนี้มีตัวเลือกน้อยที่สุดบนกระดาน ลองตัดตัวเลือกที่เป็นไปไม่ได้ออก','<b>Step 1:</b> Look at the red cell — it has the fewest options on the board right now. Rule out the impossible ones.');
   }else if(H.level===2){
     if(!G.val[H.cell])G.notes[H.cell]=H.mask;
-    $('hintBox').innerHTML=`<b>ขั้นที่ 2:</b> ช่องนี้เป็นได้เพียง <b>${vals.join(', ')}</b> (จดเป็นโน้ตไว้ให้แล้ว)`;
+    $('hintBox').innerHTML=L(`<b>ขั้นที่ 2:</b> ช่องนี้เป็นได้เพียง <b>${vals.join(', ')}</b> (จดเป็นโน้ตไว้ให้แล้ว)`,`<b>Step 2:</b> This cell can only be <b>${vals.join(', ')}</b> (added as notes)`);
   }else{
     G.val[H.cell]=P.sol[H.cell];G.notes[H.cell]=0;G.wrong[H.cell]=0;
     for(const c of relatedCells(H.cell))G.notes[c]&=~(1<<P.sol[H.cell]);
-    $('hintBox').innerHTML=`<b>ขั้นที่ 3:</b> คำตอบของช่องนี้คือ <b>${sy[P.sol[H.cell]]}</b> — กดคำใบ้อีกครั้งเพื่อเริ่มช่องถัดไป`;
+    $('hintBox').innerHTML=L(`<b>ขั้นที่ 3:</b> คำตอบของช่องนี้คือ <b>${sy[P.sol[H.cell]]}</b> — กดคำใบ้อีกครั้งเพื่อเริ่มช่องถัดไป`,`<b>Step 3:</b> The answer is <b>${sy[P.sol[H.cell]]}</b> — press Hint again for the next cell`);
     G.hint={level:0,cell:-1};
   }
   updateHintUI();drawBoard();checkSolved();saveGame();
@@ -1624,11 +1741,11 @@ $('pHint').onclick=giveHint;
 let revealArm=0;
 $('pReveal').onclick=()=>{
   if(!G.P||G.done||G.mode==='daily')return;
-  if(Date.now()-revealArm>3000){revealArm=Date.now();$('pReveal').textContent='กดอีกครั้งเพื่อยืนยันการดูเฉลย';setTimeout(()=>{$('pReveal').textContent='ดูเฉลยทั้งกระดาน'},3000);return}
-  revealArm=0;$('pReveal').textContent='ดูเฉลยทั้งกระดาน';
+  if(Date.now()-revealArm>3000){revealArm=Date.now();$('pReveal').textContent=L('กดอีกครั้งเพื่อยืนยันการดูเฉลย','Press again to confirm');setTimeout(()=>{$('pReveal').textContent=L('ดูเฉลยทั้งกระดาน','Show full solution')},3000);return}
+  revealArm=0;$('pReveal').textContent=L('ดูเฉลยทั้งกระดาน','Show full solution');
   G.revealed=true;G.done=true;G.sel=-1;
   addHistory('revealed');
-  $('hintBox').textContent='แสดงเฉลยแล้ว ตัวเลขสีเทาคือคำตอบที่ยังไม่ได้เติม — เริ่มกระดานใหม่ได้ทางด้านบน';
+  $('hintBox').textContent=L('แสดงเฉลยแล้ว ตัวเลขสีเทาคือคำตอบที่ยังไม่ได้เติม — เริ่มกระดานใหม่ได้ทางด้านบน','Solution shown — grey numbers are the cells you had not filled. Start a new board above.');
   updateHintUI();updateBanner();drawBoard();saveGame();
 };
 
@@ -1642,11 +1759,11 @@ function checkSolved(){
 function updateBanner(){
   const b=$('solvedBanner');
   if(G.mode==='daily'){b.classList.remove('on');return}
-  if(G.done&&!G.revealed){b.innerHTML=`<b>正解</b> &nbsp;เยี่ยมมาก! แก้สำเร็จในเวลา ${fmtTime(G.secs)}${G.hints?` · ใช้คำใบ้ ${G.hints} ครั้ง`:' · ไม่ใช้คำใบ้เลย'}`;b.classList.add('on')}
+  if(G.done&&!G.revealed){b.innerHTML=`<b>正解</b> &nbsp;`+L(`เยี่ยมมาก! แก้สำเร็จในเวลา ${fmtTime(G.secs)}${G.hints?` · ใช้คำใบ้ ${G.hints} ครั้ง`:' · ไม่ใช้คำใบ้เลย'}`,`Well done! Solved in ${fmtTime(G.secs)}${G.hints?` · ${G.hints} hint(s)`:' · no hints'}`);b.classList.add('on')}
   else b.classList.remove('on');
 }
-function resumeGame(){if(G.mode==='daily'){dailyUnhide();return}G.paused=false;$('pauseCover').classList.remove('on');$('gPause').textContent='หยุด';drawBoard()}
-$('gPause').onclick=()=>{if(!G.P||G.done||G.mode==='daily')return;if(G.paused){resumeGame();return}G.paused=true;$('pauseCover').classList.add('on');$('gPause').textContent='เล่นต่อ'};
+function resumeGame(){if(G.mode==='daily'){dailyUnhide();return}G.paused=false;$('pauseCover').classList.remove('on');$('gPause').textContent=L('หยุด','Pause');drawBoard()}
+$('gPause').onclick=()=>{if(!G.P||G.done||G.mode==='daily')return;if(G.paused){resumeGame();return}G.paused=true;$('pauseCover').classList.add('on');$('gPause').textContent=L('เล่นต่อ','Resume')};
 $('gResume').onclick=resumeGame;
 setInterval(()=>{
   if(G.mode==='daily'){dailyTick();return}
@@ -1666,15 +1783,15 @@ function renderHistory(){
   const same=solved.filter(x=>x.type===c.type&&x.size===c.size&&x.diff===c.diff);
   const best=same.length?Math.min(...same.map(x=>x.secs)):null;
   const avg=same.length?Math.round(same.reduce((a,x)=>a+x.secs,0)/same.length):null;
-  $('stats').innerHTML=`<div><b>${solved.length}</b><span>แก้สำเร็จ</span></div><div><b>${best!==null?fmtTime(best):'–'}</b><span>ดีที่สุด (โหมดนี้)</span></div><div><b>${avg!==null?fmtTime(avg):'–'}</b><span>เฉลี่ย (โหมดนี้)</span></div>`;
-  if(!h.length){$('hist').innerHTML='<div class="small">ยังไม่มีประวัติ — เล่นจบกระดานแรกแล้วจะบันทึกไว้ที่นี่ (เก็บในเบราว์เซอร์เครื่องนี้)</div>';return}
+  $('stats').innerHTML=`<div><b>${solved.length}</b><span>${L('แก้สำเร็จ','Solved')}</span></div><div><b>${best!==null?fmtTime(best):'–'}</b><span>${L('ดีที่สุด (โหมดนี้)','Best (this mode)')}</span></div><div><b>${avg!==null?fmtTime(avg):'–'}</b><span>${L('เฉลี่ย (โหมดนี้)','Average (this mode)')}</span></div>`;
+  if(!h.length){$('hist').innerHTML='<div class="small">'+L('ยังไม่มีประวัติ — เล่นจบกระดานแรกแล้วจะบันทึกไว้ที่นี่ (เก็บในเบราว์เซอร์เครื่องนี้)','No history yet — finished boards are saved here (in this browser only)')+'</div>';return}
   const d2=t=>{const d=new Date(t);return `${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`};
-  $('hist').innerHTML='<table>'+h.slice(0,40).map(x=>`<tr><td>${modeLabel(x)} · ${DIFF_TH[x.diff]}<span class="tag ${x.st==='solved'?'ok':'rv'}">${x.st==='solved'?'สำเร็จ':'ดูเฉลย'}</span><br><span class="small">${d2(x.d)}${x.hints?` · คำใบ้ ${x.hints}`:''}</span></td><td class="t">${fmtTime(x.secs)}</td></tr>`).join('')+'</table>';
+  $('hist').innerHTML='<table>'+h.slice(0,40).map(x=>`<tr><td>${modeLabel(x)} · ${DIFF_TH[x.diff]}<span class="tag ${x.st==='solved'?'ok':'rv'}">${x.st==='solved'?L('สำเร็จ','Solved'):L('ดูเฉลย','Revealed')}</span><br><span class="small">${d2(x.d)}${x.hints?` · ${L('คำใบ้','hints')} ${x.hints}`:''}</span></td><td class="t">${fmtTime(x.secs)}</td></tr>`).join('')+'</table>';
 }
 let clearArm=0;
 $('histClear').onclick=()=>{
-  if(Date.now()-clearArm>3000){clearArm=Date.now();$('histClear').textContent='กดอีกครั้งเพื่อยืนยันการล้างประวัติ';setTimeout(()=>{$('histClear').textContent='ล้างประวัติ'},3000);return}
-  clearArm=0;$('histClear').textContent='ล้างประวัติ';lsSet(HIST_KEY,[]);renderHistory();
+  if(Date.now()-clearArm>3000){clearArm=Date.now();$('histClear').textContent=L('กดอีกครั้งเพื่อยืนยันการล้างประวัติ','Press again to clear history');setTimeout(()=>{$('histClear').textContent=L('ล้างประวัติ','Clear history')},3000);return}
+  clearArm=0;$('histClear').textContent=L('ล้างประวัติ','Clear history');lsSet(HIST_KEY,[]);renderHistory();
 };
 
 /* ---------- สลับเมนู ---------- */
@@ -1694,7 +1811,7 @@ window.addEventListener('hashchange',()=>showView(location.hash==='#exam'?'exam'
 
 /* ---------- เริ่มต้น ---------- */
 (async()=>{
-  renderPlayForm();renderHistory();
+  applyLang();renderPlayForm();renderHistory();
   await ensureFonts();
   const saved=lsGet(PLAY_KEY,null);
   const startHash=location.hash;
@@ -1715,8 +1832,8 @@ const D={day:null,run:null,hidden:false,leaves:0,startLocal:0,done:false,secs:0,
 let freeSnapshot=null;
 const TH_MONTH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 const TH_WD=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
-const thaiDate=day=>{const d=new Date(day+'T00:00:00Z');return `วัน${TH_WD[d.getUTCDay()]}ที่ ${d.getUTCDate()} ${TH_MONTH[d.getUTCMonth()]} ${d.getUTCFullYear()+543}`};
-const shortThai=day=>{const d=new Date(day+'T00:00:00Z');return `${d.getUTCDate()} ${TH_MONTH[d.getUTCMonth()]} ${String(d.getUTCFullYear()+543).slice(2)}`};
+const thaiDate=day=>{const d=new Date(day+'T00:00:00Z');if(LANG==='en')return d.toLocaleDateString('en-GB',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long',year:'numeric'});return `วัน${TH_WD[d.getUTCDay()]}ที่ ${d.getUTCDate()} ${TH_MONTH[d.getUTCMonth()]} ${d.getUTCFullYear()+543}`};
+const shortThai=day=>{const d=new Date(day+'T00:00:00Z');if(LANG==='en')return d.toLocaleDateString('en-GB',{timeZone:'UTC',day:'numeric',month:'short',year:'2-digit'});return `${d.getUTCDate()} ${TH_MONTH[d.getUTCMonth()]} ${String(d.getUTCFullYear()+543).slice(2)}`};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const siteUrl=()=>/^https?:$/.test(location.protocol)?location.origin+'/':SITE_URL;
 
@@ -1741,7 +1858,7 @@ function setMode(m){
   }else{
     dailyLeave();saveDaily();
     G.mode='free';hideCover();D.hidden=false;
-    $('pauseMsg').textContent='หยุดเวลาชั่วคราว';$('gResume').style.display='';$('gResume').textContent='เล่นต่อ';
+    $('pauseMsg').textContent=L('หยุดเวลาชั่วคราว','Paused');$('gResume').style.display='';$('gResume').textContent=L('เล่นต่อ','Resume');
     const sv=freeSnapshot||lsGet(PLAY_KEY,null);
     try{if(sv&&sv.cfg&&TYPES[sv.cfg.type])startGame(sv.cfg,sv);else newGame()}catch(e){console.error(e)}
     $('gTimer').textContent=fmtTime(G.secs);
@@ -1769,15 +1886,12 @@ function enterDaily(){
   }
   D.name=D.name||lsGet(NAME_KEY,'')||'';
   $('dName').value=D.name;
-  $('gTitle').textContent='ปริศนาประจำวัน · '+modeLabel(c);
-  $('gMeta').textContent=shortThai(day);
-  $('dDate').textContent=thaiDate(day);
-  $('dType').textContent=`${modeLabel(c)} · ระดับ${DIFF_TH[c.diff]} · ทุกคนได้โจทย์เดียวกัน`;
-  $('gRule').textContent=instruction(c.type,c.size,'edu','h');
+  dailyTexts();
+
   $('hintBox').textContent='';
   buildKeypad();layoutBoard();
-  if(D.run&&!D.done){D.hidden=true;showCover('กลับมาเล่นต่อได้เลย<br>เวลายังเดินอยู่ตั้งแต่กดเริ่ม','เล่นต่อ')}
-  else if(!D.run)showCover('กด “เริ่มปริศนาวันนี้”<br>เพื่อเปิดโจทย์และเริ่มจับเวลา',null);
+  if(D.run&&!D.done){D.hidden=true;D.cover='resume';showCover(L('กลับมาเล่นต่อได้เลย<br>เวลายังเดินอยู่ตั้งแต่กดเริ่ม','Welcome back<br>the clock has been running since you started'),L('เล่นต่อ','Resume'))}
+  else if(!D.run){D.cover='start';showCover(L('กด “เริ่มปริศนาวันนี้”<br>เพื่อเปิดโจทย์และเริ่มจับเวลา','Press “Start today’s puzzle”<br>to reveal the board and start the clock'),null)}
   else hideCover();
   updateDailyUI();dailyTick();loadBoard();
 }
@@ -1785,7 +1899,7 @@ function dailyUnhide(){if(!D.run||D.done)return;D.hidden=false;hideCover();drawB
 function dailyLeave(){
   if(G.mode!=='daily'||!D.run||D.done||D.hidden)return;
   D.hidden=true;D.leaves++;saveDaily();
-  showCover(`ตรวจพบการออกจากหน้าจอ (ครั้งที่ ${D.leaves})<br>ซ่อนกระดานไว้ — เวลายังเดินต่อ`,'กลับมาเล่น');
+  D.cover='leave';showCover(L(`ตรวจพบการออกจากหน้าจอ (ครั้งที่ ${D.leaves})<br>ซ่อนกระดานไว้ — เวลายังเดินต่อ`,`You left the screen (${D.leaves}×)<br>the board is hidden — the clock keeps running`),L('กลับมาเล่น','Back to the game'));
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')dailyLeave()});
 window.addEventListener('blur',dailyLeave);
@@ -1793,18 +1907,18 @@ window.addEventListener('blur',dailyLeave);
 $('dStart').onclick=async()=>{
   const name=$('dName').value.trim().replace(/\s+/g,' ');
   const msg=$('dPlaying');
-  if(!name){msg.hidden=false;msg.textContent='กรุณาใส่ชื่อก่อนเริ่ม';$('dName').focus();return}
+  if(!name){msg.hidden=false;msg.textContent=L('กรุณาใส่ชื่อก่อนเริ่ม','Please enter your name first');$('dName').focus();return}
   D.name=name;lsSet(NAME_KEY,name);
-  $('dStart').disabled=true;$('dStart').textContent='กำลังเริ่ม …';
+  $('dStart').disabled=true;$('dStart').textContent=L('กำลังเริ่ม …','Starting …');
   try{const r=await api('start',{name});D.run=r.id;D.offline=false}
   catch(e){
-    if(e.code==='limit'||e.code==='name'){msg.hidden=false;msg.textContent=e.message;$('dStart').disabled=false;$('dStart').textContent='เริ่มปริศนาวันนี้';return}
+    if(e.code==='limit'||e.code==='name'){msg.hidden=false;msg.textContent=LANG==='en'?(e.code==='limit'?'Daily start limit reached for today':'Please enter your name'):e.message;$('dStart').disabled=false;$('dStart').textContent=L('เริ่มปริศนาวันนี้','Start today’s puzzle');return}
     D.run='local-'+Date.now();D.offline=true;
   }
   D.startLocal=Date.now();D.leaves=0;D.hidden=false;G.val.fill(0);G.notes.fill(0);
   hideCover();updateDailyUI();saveDaily();drawBoard();$('board').focus({preventScroll:true});
   if(window.innerWidth<=900)$('gTitle').closest('.board-card').scrollIntoView({behavior:'smooth',block:'start'});
-  $('dStart').disabled=false;$('dStart').textContent='เริ่มปริศนาวันนี้';
+  $('dStart').disabled=false;$('dStart').textContent=L('เริ่มปริศนาวันนี้','Start today’s puzzle');
 };
 
 function dailyTick(){
@@ -1829,22 +1943,24 @@ async function dailyComplete(){
 }
 function shareText(){
   const c=dailyCfg(D.day);
+  if(LANG==='en')return `🧩 SUDOKU RENMA · Daily puzzle ${shortThai(D.day)}\n${modeLabel(c)} — ${D.name||'I'} solved it in ${fmtTime(D.secs)} ⏱${D.rank?` rank ${D.rank} of ${D.players}`:''}\nCan you beat it? ${siteUrl()}#daily`;
   return `🧩 SUDOKU RENMA · ปริศนาประจำวัน ${shortThai(D.day)}\n${modeLabel(c)} — ${D.name||'ฉัน'} ทำได้ในเวลา ${fmtTime(D.secs)} ⏱${D.rank?` อันดับ ${D.rank} จาก ${D.players} คน`:''}\nมาลองแข่งกันได้ที่ ${siteUrl()}#daily`;
 }
 function updateDailyUI(state){
   $('dPre').hidden=!!D.run;
   $('dPlaying').hidden=!(D.run&&!D.done);
   if(D.run&&!D.done)$('dPlaying').textContent=D.offline
-    ?'กำลังเล่น (ระบบอันดับยังไม่พร้อม — ผลจะบันทึกเฉพาะในเครื่องนี้)'
-    :'กำลังแข่ง — เติมให้ครบทุกช่อง ระบบจะส่งคำตอบให้อัตโนมัติ';
+    ?L('กำลังเล่น (ระบบอันดับยังไม่พร้อม — ผลจะบันทึกเฉพาะในเครื่องนี้)','Playing (leaderboard not available — result is saved on this device only)')
+    :L('กำลังแข่ง — เติมให้ครบทุกช่อง ระบบจะส่งคำตอบให้อัตโนมัติ','In progress — fill every cell and your answer is sent automatically');
   $('dResult').hidden=!D.done;
   if(!D.done)return;
   $('dTime').textContent=fmtTime(D.secs);
   let sub;
-  if(state==='sending')sub='กำลังส่งผล …';
-  else if(D.offline)sub=`${esc(D.name)} · บันทึกเฉพาะในเครื่องนี้ (ระบบอันดับยังไม่เปิด)`;
-  else if(D.err)sub=`ส่งผลไม่สำเร็จ: ${esc(D.err)}`;
-  else sub=`<b>อันดับที่ ${D.rank} จาก ${D.players} คน</b><br>${esc(D.name)}${D.leaves?` · ออกจากจอ ${D.leaves} ครั้ง`:''}`;
+  if(state==='sending')sub=L('กำลังส่งผล …','Sending result …');
+  else if(D.offline)sub=`${esc(D.name)} · `+L('บันทึกเฉพาะในเครื่องนี้ (ระบบอันดับยังไม่เปิด)','saved on this device only (leaderboard not available)');
+  else if(D.err)sub=L('ส่งผลไม่สำเร็จ: ','Could not send result: ')+esc(D.err);
+  else if(D.rank)sub=`<b>${L(`อันดับที่ ${D.rank} จาก ${D.players} คน`,`Rank ${D.rank} of ${D.players}`)}</b><br>${esc(D.name)}${D.leaves?` · ${L(`ออกจากจอ ${D.leaves} ครั้ง`,`left screen ${D.leaves}×`)}`:''}`;
+  else sub=`<b>${L('แก้ปริศนาสำเร็จ!','Solved!')}</b><br>${esc(D.name)}`;
   $('dRank').innerHTML=sub;
   const t=shareText(),u=siteUrl();
   $('shFb').href='https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(u);
@@ -1855,7 +1971,7 @@ function updateDailyUI(state){
 $('shCopy').onclick=async()=>{
   const t=shareText();
   try{await navigator.clipboard.writeText(t)}catch(e){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(_){}ta.remove()}
-  $('shCopy').textContent='คัดลอกแล้ว ✓';setTimeout(()=>$('shCopy').textContent='คัดลอกข้อความ',1800);
+  $('shCopy').textContent=L('คัดลอกแล้ว ✓','Copied ✓');setTimeout(()=>$('shCopy').textContent=L('คัดลอกข้อความ','Copy text'),1800);
 };
 $('shNative').onclick=async()=>{
   const text=shareText();
@@ -1883,7 +1999,7 @@ async function resultCardBlob(){
   ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillStyle='#1d1c1a';
   ctx.font=`800 54px ${MIN}`;ctx.letterSpacing='10px';ctx.fillText('SUDOKU RENMA',216,138);ctx.letterSpacing='0px';
   ctx.fillStyle='#8b867c';ctx.font=`600 26px ${MIN}`;ctx.fillText('数独練磨  ·  ',218,180);
-  ctx.font=`600 28px ${FONT}`;ctx.fillText('ปริศนาประจำวัน',218+ctx.measureText('数独練磨  ·  ').width+6,180);
+  ctx.font=`600 28px ${FONT}`;ctx.fillText(L('ปริศนาประจำวัน','Daily puzzle'),218+ctx.measureText('数独練磨  ·  ').width+6,180);
   // กระดาน (เฉพาะโจทย์)
   const ext=gridExtent(G.P),S=Math.floor(560/Math.max(ext.w,ext.h)),bw=S*ext.w,bx=(W-bw)/2,by=250;
   ctx.fillStyle='#fffdf9';ctx.fillRect(bx-18,by-18,bw+36,S*ext.h+36);
@@ -1893,9 +2009,9 @@ async function resultCardBlob(){
   ctx.fillText(`${thaiDate(D.day)} · ${modeLabel(dailyCfg(D.day))}`,W/2,y);y+=120;
   ctx.fillStyle='#1d1c1a';ctx.font=`800 132px ${MIN}`;ctx.fillText(fmtTime(D.secs),W/2,y);y+=70;
   ctx.font=`700 40px ${FONT}`;ctx.fillStyle='#b8432f';
-  ctx.fillText(D.rank?`อันดับที่ ${D.rank} จาก ${D.players} คน`:'แก้ปริศนาสำเร็จ!',W/2,y);y+=56;
+  ctx.fillText(D.rank?L(`อันดับที่ ${D.rank} จาก ${D.players} คน`,`Rank ${D.rank} of ${D.players}`):L('แก้ปริศนาสำเร็จ!','Solved!'),W/2,y);y+=56;
   ctx.font=`600 34px ${FONT}`;ctx.fillStyle='#1d1c1a';if(D.name)ctx.fillText(D.name,W/2,y);
-  ctx.font=`600 30px ${FONT}`;ctx.fillStyle='#24395a';ctx.fillText(`มาแข่งกันที่ ${siteUrl().replace(/^https?:\/\//,'').replace(/\/$/,'')}`,W/2,H-80);
+  ctx.font=`600 30px ${FONT}`;ctx.fillStyle='#24395a';ctx.fillText(`${L('มาแข่งกันที่','Play at')} ${siteUrl().replace(/^https?:\/\//,'').replace(/\/$/,'')}`,W/2,H-80);
   return await new Promise(r=>cv.toBlob(r,'image/png'));
 }
 
@@ -1904,18 +2020,19 @@ document.querySelectorAll('#dBoardDay button').forEach(b=>b.onclick=()=>{D.board
 $('dRefresh').onclick=()=>loadBoard();
 async function loadBoard(){
   const box=$('dBoard'),day=D.boardDay==='yday'?bangkokDay(Date.now()-864e5):bangkokDay();
-  box.innerHTML='<div class="small">กำลังโหลด …</div>';
+  box.innerHTML='<div class="small">'+L('กำลังโหลด …','Loading …')+'</div>';
   try{
     const r=await api('board?day='+day);
-    if(!r.top||!r.top.length){box.innerHTML=`<div class="small">${D.boardDay==='yday'?'เมื่อวานยังไม่มีผู้ส่งผล':'ยังไม่มีใครส่งผลวันนี้ — มาเป็นคนแรกกัน!'}</div>`;return}
-    box.innerHTML=`<div class="small" style="margin-bottom:4px">${shortThai(r.day)} · ผู้เล่น ${r.players} คน</div><table class="lb">`+
-      r.top.map((x,i)=>`<tr class="${x.name===D.name?'me':''}"><td class="r">${i+1}</td><td>${esc(x.name)}${x.leaves?`<span class="lv" title="ออกจากหน้าจอระหว่างเล่น">👁 ${x.leaves}</span>`:''}</td><td class="t">${fmtTime(x.secs)}</td></tr>`).join('')+'</table>';
+    if(!r.top||!r.top.length){box.innerHTML=`<div class="small">${D.boardDay==='yday'?L('เมื่อวานยังไม่มีผู้ส่งผล','No results yesterday'):L('ยังไม่มีใครส่งผลวันนี้ — มาเป็นคนแรกกัน!','No results yet today — be the first!')}</div>`;return}
+    box.innerHTML=`<div class="small" style="margin-bottom:4px">${shortThai(r.day)} · ${L(`ผู้เล่น ${r.players} คน`,`${r.players} player(s)`)}</div><table class="lb">`+
+      r.top.map((x,i)=>`<tr class="${x.name===D.name?'me':''}"><td class="r">${i+1}</td><td>${esc(x.name)}${x.leaves?`<span class="lv" title="${L('ออกจากหน้าจอระหว่างเล่น','left the screen while playing')}">👁 ${x.leaves}</span>`:''}</td><td class="t">${fmtTime(x.secs)}</td></tr>`).join('')+'</table>';
   }catch(e){
-    box.innerHTML=`<div class="small">ตารางอันดับยังใช้งานไม่ได้ในตอนนี้${e.code==='no_db'?' (ผู้ดูแลยังไม่ได้เปิดฐานข้อมูล)':''}</div>`;
+    box.innerHTML=`<div class="small">${L('ตารางอันดับยังใช้งานไม่ได้ในตอนนี้','The leaderboard is not available right now')}${e.code==='no_db'?L(' (ผู้ดูแลยังไม่ได้เปิดฐานข้อมูล)',' (database not connected yet)'):''}</div>`;
   }
 }
 setInterval(()=>{if(G.mode==='daily'&&playActive()&&document.visibilityState==='visible')loadBoard()},60000);
 
+$('langBtn').onclick=()=>setLang(LANG==='en'?'th':'en');
 window.__play=G;window.__daily=D;
 </script>
 </body>

@@ -257,6 +257,7 @@
           <div id="dPre">
             <label for="dName">ชื่อที่จะแสดงในตารางอันดับ</label>
             <input type="text" id="dName" maxlength="24" placeholder="เช่น ด.ญ.มะลิ ป.6/1" autocomplete="nickname">
+            <div class="small" id="dAcc" hidden style="margin:-2px 0 8px"></div>
             <button class="btn shu" id="dStart">เริ่มปริศนาวันนี้</button>
             <div class="small" style="margin-top:8px">ทุกคนได้โจทย์เดียวกัน เปลี่ยนทุกเที่ยงคืน · ไม่มีคำใบ้และเฉลย · เวลาจับจากเซิร์ฟเวอร์ตั้งแต่กดเริ่มจนเติมครบ หยุดเวลาไม่ได้ · ถ้าสลับไปหน้าจออื่น กระดานจะถูกซ่อนและนับจำนวนครั้งที่ออกจากจอ</div>
           </div>
@@ -2026,12 +2027,25 @@ async function loadBoard(){
     const r=await api('board?day='+day);
     if(!r.top||!r.top.length){box.innerHTML=`<div class="small">${D.boardDay==='yday'?L('เมื่อวานยังไม่มีผู้ส่งผล','No results yesterday'):L('ยังไม่มีใครส่งผลวันนี้ — มาเป็นคนแรกกัน!','No results yet today — be the first!')}</div>`;return}
     box.innerHTML=`<div class="small" style="margin-bottom:4px">${shortThai(r.day)} · ${L(`ผู้เล่น ${r.players} คน`,`${r.players} player(s)`)}</div><table class="lb">`+
-      r.top.map((x,i)=>`<tr class="${x.name===D.name?'me':''}"><td class="r">${i+1}</td><td>${esc(x.name)}${x.leaves?`<span class="lv" title="${L('ออกจากหน้าจอระหว่างเล่น','left the screen while playing')}">👁 ${x.leaves}</span>`:''}</td><td class="t">${fmtTime(x.secs)}</td></tr>`).join('')+'</table>';
+      r.top.map((x,i)=>`<tr class="${x.name===D.name?'me':''}"><td class="r">${i+1}</td><td>${esc(x.name)}${x.v?VF:''}${x.leaves?`<span class="lv" title="${L('ออกจากหน้าจอระหว่างเล่น','left the screen while playing')}">👁 ${x.leaves}</span>`:''}</td><td class="t">${fmtTime(x.secs)}</td></tr>`).join('')+'</table>';
   }catch(e){
     box.innerHTML=`<div class="small">${L('ตารางอันดับยังใช้งานไม่ได้ในตอนนี้','The leaderboard is not available right now')}${e.code==='no_db'?L(' (ผู้ดูแลยังไม่ได้เปิดฐานข้อมูล)',' (database not connected yet)'):''}</div>`;
   }
 }
 setInterval(()=>{if(G.mode==='daily'&&playActive()&&document.visibilityState==='visible')loadBoard()},60000);
+
+/* บัญชี Math a Day (account.mathaday.app): เข้าด้วย Google แล้วชื่อในตารางมี ✓ คนอื่นสวมรอยไม่ได้ */
+const VF='<span title="ยืนยันด้วยบัญชี Google" style="color:#16a34a;font-size:12px;margin-left:4px">✓</span>';
+(async function accBar(){
+  if(!/(^|.)mathaday.app$/.test(location.hostname))return;
+  if(!window.MathADay)await new Promise(r=>{const s=document.createElement('script');s.src='https://account.mathaday.app/sdk.js';s.onload=s.onerror=r;document.head.appendChild(s)});
+  if(!window.MathADay)return;
+  const me=await MathADay.me(),box=$('dAcc');
+  box.hidden=false;
+  if(me){box.innerHTML='<span style="color:#16a34a">✓ '+L('เข้าด้วยบัญชี Google แล้ว ผลของคุณจะมีเครื่องหมาย ✓','Signed in with Google: your results get a ✓')+'</span>';return}
+  box.innerHTML='<a href="#" id="dGoogle" style="font-weight:600">'+L('เข้าด้วย Google','Sign in with Google')+'</a> '+L('เพื่อให้ชื่อในตารางมี ✓ กันคนใช้ชื่อซ้ำ','to get a ✓ next to your name');
+  $('dGoogle').onclick=e=>{e.preventDefault();MathADay.signIn(location.href)};
+})();
 
 $('langBtn').onclick=()=>setLang(LANG==='en'?'th':'en');
 window.__play=G;window.__daily=D;

@@ -2,21 +2,22 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
+<script src="move.js" data-to="https://sudokurenma.mathaday.app" data-from="sudokurenma.pages.dev"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SUDOKU RENMA · 数独練磨</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='6' fill='%23b8432f'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle' fill='white' font-family='serif' font-weight='bold'%3E%E7%B7%B4%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#b8432f">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="SUDOKU RENMA">
-<meta property="og:url" content="https://sudokurenma.pages.dev/">
+<meta property="og:url" content="https://sudokurenma.mathaday.app/">
 <meta property="og:title" content="SUDOKU RENMA · 数独練磨 — เล่นซูโดกุ ปริศนาประจำวัน และสร้างข้อสอบฟรี">
 <meta property="og:description" content="ซูโดกุ 20 รูปแบบ เล่นบนเว็บได้ทันที มีปริศนาประจำวันพร้อมตารางอันดับ และสร้างชุดข้อสอบตามแบบฟอร์มศิลปหัตถกรรม/EduPLOYS พร้อมเฉลย PDF">
-<meta property="og:image" content="https://sudokurenma.pages.dev/og-cover.png">
+<meta property="og:image" content="https://sudokurenma.mathaday.app/og-cover.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="th_TH">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://sudokurenma.pages.dev/og-cover.png">
+<meta name="twitter:image" content="https://sudokurenma.mathaday.app/og-cover.png">
 <meta name="description" content="SUDOKU RENMA — เล่นซูโดกุ 20 รูปแบบบนเว็บ พร้อมระบบคำใบ้ และสร้างชุดข้อสอบซูโดกุตามแบบฟอร์มการแข่งขัน บันทึกเป็น PDF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -984,7 +985,7 @@ function drawGrid(ctx,P,x,y,S,mode,opt){ // x,y = มุมซ้ายบนข
 function itemPoints(st,i,P){return (st.style==='edu'&&st.round==='final'&&P)?P.blanks:(+st.items[i].points||0)}
 function footer(ctx,st,W,H,label){
   ctx.save();font(ctx,9,false);ctx.fillStyle='#777';
-  textAt(ctx,'SUDOKU RENMA · sudokurenma.pages.dev',28,H-16,'left');
+  textAt(ctx,'SUDOKU RENMA · sudokurenma.mathaday.app',28,H-16,'left');
   textAt(ctx,`รหัสชุด ${st.seed}${label?' · '+label:''}`,W-28,H-16,'right');
   ctx.restore();
 }
@@ -1825,7 +1826,7 @@ window.addEventListener('hashchange',()=>showView(location.hash==='#exam'?'exam'
 })();
 
 /* ================== ปริศนาประจำวัน + ตารางอันดับ ================== */
-const SITE_URL='https://sudokurenma.pages.dev/';
+const SITE_URL='https://sudokurenma.mathaday.app/';
 const API='/api/daily/';
 const DAILY_KEY='renmaDaily',NAME_KEY='renmaName';
 const D={day:null,run:null,hidden:false,leaves:0,startLocal:0,done:false,secs:0,rank:null,players:null,offline:false,err:null,name:'',boardDay:'today'};

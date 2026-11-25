@@ -210,7 +210,7 @@
 </head>
 <body>
 <header>
-  <a class="brand" href="#play">
+  <a class="brand" href="#daily">
     <div class="seal">練</div>
     <div><div class="brand-name">SUDOKU RENMA</div><div class="brand-sub">数独練磨</div></div>
   </a>
@@ -248,7 +248,7 @@
       </div>
     </div>
     <div class="side">
-      <div class="seg modeseg" id="modeSeg"><button data-m="free" class="on">โหมดอิสระ</button><button data-m="daily">🗓 ปริศนาประจำวัน</button></div>
+      <div class="seg modeseg" id="modeSeg"><button data-m="daily">🗓 ปริศนาประจำวัน</button><button data-m="free" class="on">โหมดอิสระ</button></div>
       <div id="dailySide" hidden>
         <div class="block">
           <h3><span class="kj">今日</span>ปริศนาประจำวัน</h3>
@@ -1809,7 +1809,7 @@ function showView(v){
 }
 document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>showView(b.dataset.v));
 window.addEventListener('resize',()=>{if(playActive())layoutBoard()});
-window.addEventListener('hashchange',()=>showView(location.hash==='#exam'?'exam':location.hash==='#daily'?'daily':'play'));
+window.addEventListener('hashchange',()=>{const h=location.hash;if(h==='#exam')showView('exam');else if(h==='#play'){showView('play');if(G.mode!=='free')setMode('free')}else showView('daily')});
 
 /* ---------- เริ่มต้น ---------- */
 (async()=>{
@@ -1823,7 +1823,8 @@ window.addEventListener('hashchange',()=>showView(location.hash==='#exam'?'exam'
     else startGame({type:pref.type,size:pref.size,diff:pref.diff,box:pref.box,seed:randomSeed()});
   }catch(e){console.error(e)}
   $('gTimer').textContent=fmtTime(G.secs);renderHistory();
-  if(startHash==='#daily')setMode('daily');
+  // หน้าแรกหลัก = ปริศนาประจำวัน (ยกเว้นลิงก์ #play หรือ #exam)
+  if(startHash!=='#play'&&startHash!=='#exam')setMode('daily');
 })();
 
 /* ================== ปริศนาประจำวัน + ตารางอันดับ ================== */
